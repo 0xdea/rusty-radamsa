@@ -634,7 +634,7 @@ mod tests {
         r.set_patterns("default").expect("bad input");
         r.set_output(vec!["buffer"]).expect("bad input");
         let mut out_buffer: Box<[u8]> = Box::from(vec![0u8; 2048]);
-        let paths = crate::shared::_vec_of_strings!["127.0.0.1:8000"];
+        let paths = vec_of_strings!["127.0.0.1:8000"];
         let _len = r.fuzz(None, Some(paths), Some(&mut out_buffer)).unwrap();
         debug!("test len {}", _len);
         println_lossy(&out_buffer.to_vec());

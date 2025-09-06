@@ -263,7 +263,7 @@ mod tests {
     use rand_chacha::ChaCha20Rng;
 
     use super::*;
-    use crate::shared::_vec_of_strings;
+    use crate::vec_of_strings;
 
     fn filestream() -> PathBuf {
         let base_path = Path::new(".");
@@ -282,7 +282,7 @@ mod tests {
         let mut generators = crate::generators::Generators::new();
         generators.init();
         let mut rng = ChaCha20Rng::seed_from_u64(42);
-        let paths = _vec_of_strings![filestream_str()];
+        let paths = vec_of_strings![filestream_str()];
         generators.generator_nodes =
             crate::generators::string_generators("file=200", &mut generators.generators);
         let mut patterns = Patterns::new();
@@ -307,7 +307,7 @@ mod tests {
         let mut generators = crate::generators::Generators::new();
         generators.init();
         let mut rng = ChaCha20Rng::seed_from_u64(42);
-        let paths = _vec_of_strings![filestream_str()];
+        let paths = vec_of_strings![filestream_str()];
         generators.generator_nodes =
             crate::generators::string_generators("file=200", &mut generators.generators);
         let mut patterns = Patterns::new();
@@ -331,7 +331,7 @@ mod tests {
         let mut generators = crate::generators::Generators::new();
         generators.init();
         let mut rng = ChaCha20Rng::seed_from_u64(1);
-        let paths = _vec_of_strings![filestream_str()];
+        let paths = vec_of_strings![filestream_str()];
         generators.generator_nodes =
             crate::generators::string_generators("file=200", &mut generators.generators);
         let mut patterns = Patterns::new();

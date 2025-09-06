@@ -313,7 +313,7 @@ impl Ascii {
 
 #[cfg(test)]
 mod ascii_bad {
-    use rand::{Rng, SeedableRng};
+    use rand::{RngCore, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 
     use super::Ascii;
@@ -368,9 +368,7 @@ mod ascii_bad {
         let mut data = vec![0u8; 1000];
         for _ in 0..1000 {
             // generate random buffer
-            for i in 0..1000 {
-                data[i] = rng.gen();
-            }
+            rng.fill_bytes(&mut data);
             if let Ok(cs) = Ascii::parse(&data) {
                 assert_eq!(&data, &cs.unlex());
             }

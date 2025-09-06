@@ -92,6 +92,7 @@ fn any_position_pair<'a, T: Clone>(
 const SEARCH_FUEL: isize = 100000;
 const SEARCH_STOP_IP: usize = 8;
 
+#[allow(suspicious_double_ref_op)]
 fn split_prefixes<
     'a,
     T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
@@ -106,7 +107,7 @@ fn split_prefixes<
     // assuming _prefixes is sorted by length
     for prefix in _prefixes {
         if let Some(key) = prefix.first() {
-            if char_suffix.get(key).is_none() {
+            if !char_suffix.contains(key) {
                 let len = prefix.len() - 1;
                 new_prefixes.push(prefix.clone());
                 char_suffix.insert(key);

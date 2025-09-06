@@ -19,11 +19,10 @@ pub const MAX_CHECKSUM_RETRY: usize = 10000;
 pub const MAX_UDP_PACKET_SIZE: usize = 65507;
 pub const SILLY_STRINGS: [&str; 2] = ["cmd.exe", "/C"];
 
-macro_rules! _vec_of_strings {
+#[macro_export]
+macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 }
-
-pub(crate) use _vec_of_strings;
 
 pub(crate) fn time_seed() -> u64 {
     let d = SystemTime::now()
