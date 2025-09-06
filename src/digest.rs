@@ -170,6 +170,12 @@ pub struct Checksums {
     pub use_hashmap: bool,
 }
 
+impl Default for Checksums {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Checksums {
     // new
     pub fn new() -> Checksums {
@@ -180,14 +186,7 @@ impl Checksums {
             use_hashmap: true,
         }
     }
-    pub fn default() -> Checksums {
-        Checksums {
-            checksum: Checksum::new("sha", "Default Hash Sha-256", HashType::Sha),
-            cache: BTreeMap::new(),
-            max: 10000, // default,
-            use_hashmap: true,
-        }
-    }
+
     pub fn add(&mut self, hash: Box<[u8]>) -> Option<bool> {
         if self.cache.contains_key(&hash) {
             // exists
@@ -200,17 +199,19 @@ impl Checksums {
             Some(false)
         }
     }
+
     pub fn get_crc<T: CsDigestB>(_digest: &mut T, _data: &[u8]) -> Option<Box<[u8]>> {
         _digest.updated(_data);
         _digest.finalized()
     }
+
     pub fn get_crc_blocks<T: CsDigestB>(
         _digest: &mut T,
         _data: &[std::boxed::Box<[u8]>],
     ) -> Option<Box<[u8]>> {
         let mut iter = _data.iter();
-        while let Some(block) = iter.next() {
-            _digest.updated(&block);
+        for block in iter {
+            _digest.updated(block);
         }
         _digest.finalized()
     }
@@ -219,6 +220,7 @@ impl Checksums {
         _digest.updated(_data);
         _digest.finalized()
     }
+
     pub fn digest_data(&self, _data: &[u8]) -> Option<Box<[u8]>> {
         match &self.checksum.hash_type {
             HashType::Sha | HashType::Sha256 => {
@@ -246,6 +248,7 @@ impl Checksums {
             }
         }
     }
+
     pub fn digest_blocks(&self, _data: Option<&Vec<Box<[u8]>>>) -> Option<Box<[u8]>> {
         if let Some(data) = _data {
             match &self.checksum.hash_type {
@@ -260,8 +263,8 @@ impl Checksums {
                     };
                     let mut iter = data.iter();
                     let mut d = digest?;
-                    while let Some(block) = iter.next() {
-                        d.updated(&block);
+                    for block in iter {
+                        d.updated(block);
                     }
                     return d.finalized();
                 }

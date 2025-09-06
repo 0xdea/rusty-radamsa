@@ -49,6 +49,12 @@ pub struct Generators {
     pub generator_nodes: Vec<GenType>,
 }
 
+impl Default for Generators {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Generators {
     pub fn new() -> Generators {
         Generators {
@@ -70,12 +76,7 @@ impl Generators {
     ) -> Option<&mut Generator> {
         let mut total_priority = 0;
         for generator in self.generators.iter_mut() {
-            if self
-                .generator_nodes
-                .iter()
-                .position(|r| *r == generator.gen_type)
-                .is_none()
-            {
+            if !self.generator_nodes.contains(&generator.gen_type) {
                 generator.priority = 0;
                 if let Some(pos) = self
                     .generator_nodes

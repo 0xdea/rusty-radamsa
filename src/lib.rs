@@ -42,7 +42,7 @@ pub struct Radamsa {
     /// sleep for n milliseconds between outputs (TODO: implement).
     pub delay: usize,
     /// maximum number of checksums in uniqueness filter (0 disables).
-    /// hash algorithm for uniqueness checks (stream, sha1 or sha256).
+    /// hash algorithm for uniqueness checks (stream, sha1, or sha256).
     pub(crate) checksums: digest::Checksums,
     /// Which mutations to use. default default_mutations.
     pub(crate) mutations: mutations::Mutations,
@@ -128,8 +128,8 @@ impl Radamsa {
         self.outputs.init();
     }
 
-    /// Initializes with defaults for patterns, mutations, patterns, and outputs.
-    /// A time generated u64 value is used for the seed.
+    /// Initializes with defaults for generators, mutations, patterns, and outputs.
+    /// A time-generated u64 value is used for the seed.
     ///
     /// # Examples
     ///
@@ -147,7 +147,7 @@ impl Radamsa {
         r
     }
 
-    /// Initializes with defaults for patterns, mutations, patterns, and outputs.
+    /// Initializes with defaults for generators, mutations, patterns, and outputs.
     /// Seed is used to initialize rand.
     ///
     /// # Examples
