@@ -1,14 +1,14 @@
-/// Note that these functions are not one-to-one mappings of radamsa
-use crate::shared::*;
-use crate::RngCore;
-use rand::prelude::SliceRandom;
-use snowflake::ProcessUniqueId;
+#[cfg(test)]
+use std::println as debug;
 
 #[cfg(not(test))]
 use log::debug;
+use rand::prelude::SliceRandom;
+use snowflake::ProcessUniqueId;
 
-#[cfg(test)]
-use std::println as debug;
+/// Note that these functions are not one-to-one mappings of radamsa
+use crate::shared::*;
+use crate::RngCore;
 
 pub const MAX_LEVELS: usize = 256;
 
@@ -113,7 +113,7 @@ fn check_node(node: &Node, _delim: Option<(u8, u8)>, index: usize) -> bool {
     false
 }
 
-fn build_binary_tree(bytes: &Vec<u8>) -> Option<Node> {
+fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
     // use a stack to keep track of the nodes
     let mut stack: Vec<Node> = Vec::new();
     let mut root_node = Node::new(0, (0, 0));
@@ -222,7 +222,7 @@ fn _print_binary_tree(_node: &Node, level: usize) {
 }
 
 // check for comma separator
-fn check_separator(_start_index: usize, _data: &Vec<u8>) -> bool {
+fn check_separator(_start_index: usize, _data: &[u8]) -> bool {
     let prev_index = _start_index - 1;
     if let Some(prev_byte) = _data.get(prev_index) {
         if *prev_byte == COMMA {
@@ -354,10 +354,11 @@ pub(crate) fn sed_tree_op(
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
     use print_bytes::println_lossy;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
+
+    use super::*;
 
     #[test]
     fn test_tree_dup() {

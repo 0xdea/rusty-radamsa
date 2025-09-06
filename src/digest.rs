@@ -29,7 +29,7 @@ pub fn init_digests() -> Vec<Checksum> {
     ])
 }
 
-pub fn string_digest(_input: &str, _checksums: &mut Vec<Checksum>) -> Option<Checksum> {
+pub fn string_digest(_input: &str, _checksums: &mut [Checksum]) -> Option<Checksum> {
     if let Some(c) = _checksums.iter().find(|&x| x.id == _input) {
         return Some(c.clone());
     }
@@ -200,13 +200,13 @@ impl Checksums {
             Some(false)
         }
     }
-    pub fn get_crc<T: CsDigestB>(_digest: &mut T, _data: &Vec<u8>) -> Option<Box<[u8]>> {
+    pub fn get_crc<T: CsDigestB>(_digest: &mut T, _data: &[u8]) -> Option<Box<[u8]>> {
         _digest.updated(_data);
         _digest.finalized()
     }
     pub fn get_crc_blocks<T: CsDigestB>(
         _digest: &mut T,
-        _data: &Vec<std::boxed::Box<[u8]>>,
+        _data: &[std::boxed::Box<[u8]>],
     ) -> Option<Box<[u8]>> {
         let mut iter = _data.iter();
         while let Some(block) = iter.next() {
@@ -215,11 +215,11 @@ impl Checksums {
         _digest.finalized()
     }
 
-    pub fn get_digest<T: CsDigest>(_digest: &mut T, _data: &Vec<u8>) -> Option<Box<[u8]>> {
+    pub fn get_digest<T: CsDigest>(_digest: &mut T, _data: &[u8]) -> Option<Box<[u8]>> {
         _digest.updated(_data);
         _digest.finalized()
     }
-    pub fn digest_data(&self, _data: &Vec<u8>) -> Option<Box<[u8]>> {
+    pub fn digest_data(&self, _data: &[u8]) -> Option<Box<[u8]>> {
         match &self.checksum.hash_type {
             HashType::Sha | HashType::Sha256 => {
                 let mut d = Sha256::new_digest()?;

@@ -26,7 +26,7 @@ pub(crate) fn fuse<
 
 fn alernate_suffixes<'a, T: Clone>(
     _rng: &mut dyn RngCore,
-    _lista: &'a Vec<T>,
+    _lista: &'a [T],
 ) -> (Vec<&'a [T]>, Vec<&'a [T]>) {
     let mut new_lista: Vec<&[T]> = Vec::new();
     let mut new_listb: Vec<&[T]> = Vec::new();
@@ -68,7 +68,7 @@ fn initial_suffixes<'a, T: Clone + std::cmp::PartialEq>(
 
 fn suffixes<'a, T: Clone + std::cmp::PartialEq>(
     _rng: &mut dyn RngCore,
-    _list: &'a Vec<T>,
+    _list: &'a [T],
 ) -> Vec<&'a [T]> {
     let mut new_list: Vec<&[T]> = Vec::new();
     for (i, _val) in _list.iter().enumerate() {

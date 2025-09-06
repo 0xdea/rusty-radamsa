@@ -131,7 +131,7 @@ pub fn init_patterns() -> Vec<Pattern> {
 }
 
 /// This function parses mutation string i.e. ft=2,fo=2
-pub fn string_patterns(_input: &str, _patterns: &mut Vec<Pattern>) -> Vec<PatternType> {
+pub fn string_patterns(_input: &str, _patterns: &mut [Pattern]) -> Vec<PatternType> {
     let mut applied_patterns: Vec<PatternType> = vec![];
     let string_list = _input.trim().split(",").collect::<Vec<&str>>();
     for s in string_list {

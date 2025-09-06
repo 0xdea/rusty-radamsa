@@ -749,7 +749,7 @@ fn random_block(_rng: &mut dyn RngCore, _n: usize) -> Vec<u8> {
 }
 
 /// This function parses generator string i.e. "random,file=1000,jump=200,stdin=100000"
-pub fn string_generators(_input: &str, _generators: &mut Vec<Generator>) -> Vec<GenType> {
+pub fn string_generators(_input: &str, _generators: &mut [Generator]) -> Vec<GenType> {
     let mut applied_generators: Vec<GenType> = vec![];
     let string_list = _input.trim().split(",").collect::<Vec<&str>>();
     for s in string_list {

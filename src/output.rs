@@ -182,7 +182,7 @@ impl Output {
         self.fd = Some(fd);
         Ok(())
     }
-    pub fn write(&mut self, _data: &Vec<u8>) -> Result<usize, Box<dyn std::error::Error>> {
+    pub fn write(&mut self, _data: &[u8]) -> Result<usize, Box<dyn std::error::Error>> {
         match self.fd {
             Some(ref mut fd) => fd.gen_write(_data, 0),
             None => {
@@ -228,7 +228,7 @@ pub enum OutputType {
     Template,
 }
 
-pub fn string_outputs(_input: Vec<&str>, _outputs: &mut Vec<Output>) -> Vec<Output> {
+pub fn string_outputs(_input: Vec<&str>, _outputs: &mut [Output]) -> Vec<Output> {
     debug!("string_outputs");
     let mut applied_outputs: Vec<Output> = vec![];
     if _input.is_empty() {

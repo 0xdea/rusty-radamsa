@@ -257,7 +257,7 @@ fn interesting_numbers() -> Vec<i256> {
     out
 }
 
-pub(crate) fn rand_elem<'a, T>(_rng: &mut dyn RngCore, _list: &'a Vec<T>) -> Option<&'a T> {
+pub(crate) fn rand_elem<'a, T>(_rng: &mut dyn RngCore, _list: &'a [T]) -> Option<&'a T> {
     if _list.is_empty() {
         return None;
     }
@@ -268,7 +268,7 @@ pub(crate) fn rand_elem<'a, T>(_rng: &mut dyn RngCore, _list: &'a Vec<T>) -> Opt
 
 pub(crate) fn rand_elem_mut<'a, T>(
     _rng: &mut dyn RngCore,
-    _list: &'a mut Vec<T>,
+    _list: &'a mut [T],
 ) -> Option<&'a mut T> {
     if _list.is_empty() {
         return None;
@@ -321,10 +321,10 @@ pub(crate) trait PriorityList {
     fn priority(&self) -> usize;
 }
 
-pub(crate) fn choose_priority<'a, T: PriorityList + std::fmt::Debug>(
-    v: &'a mut Vec<T>,
+pub(crate) fn choose_priority<T: PriorityList + std::fmt::Debug>(
+    v: &mut [T],
     init: usize,
-) -> Option<&'a mut T> {
+) -> Option<&mut T> {
     let len = v.len();
     let mut iter = v.iter_mut();
     let mut n: isize = init as isize;

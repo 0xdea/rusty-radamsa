@@ -178,7 +178,7 @@ impl Text {
     }
 }
 
-fn parse_texty<'a>(input: &'a [u8]) -> IResult<&'a [u8], Vec<Text>> {
+fn parse_texty(input: &[u8]) -> IResult<&[u8], Vec<Text>> {
     let fold_ascii = |mut acc: Vec<Text>, dat: Text| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous texty blocks
@@ -232,13 +232,10 @@ impl Data {
 }
 
 fn is_texty(x: u8) -> bool {
-    match x {
-        9 | 10 | 13 | 32..=126 => true,
-        _ => false,
-    }
+    matches!(x, 9 | 10 | 13 | 32..=126)
 }
 
-fn parse_texty_bytes<'a>(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Text>> {
+fn parse_texty_bytes(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Text>> {
     move |input: &[u8]| {
         // returns success if more than min_texty contiguous "texty" bytes found
         let texty = verify(take_while(is_texty), |x: &[u8]| x.len() >= min_texty);
@@ -246,7 +243,7 @@ fn parse_texty_bytes<'a>(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8]
     }
 }
 
-fn parse_bytes<'a>(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Data>> {
+fn parse_bytes(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Data>> {
     let fold_bytes = |mut acc: Vec<Data>, dat: Data| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous byte blocks
