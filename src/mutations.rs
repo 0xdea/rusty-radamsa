@@ -373,7 +373,7 @@ impl Mutations {
         let mut mutas = self.weighted_permutation(_rng);
         let data = _data?;
         while !mutas.is_empty() {
-            let mut muta = mutas.pop()?;
+            let muta = mutas.pop()?;
             debug!("muta {}", muta.id());
             match muta.muta.mutate(_rng, Some(data)) {
                 (Some(new_data), delta) => {

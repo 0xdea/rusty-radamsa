@@ -72,8 +72,7 @@ fn suffixes<'a, T: Clone + std::cmp::PartialEq>(
 ) -> Vec<&'a [T]> {
     let mut new_list: Vec<&[T]> = Vec::new();
     for (i, _val) in _list.iter().enumerate() {
-        let mut sub_list: &[T] = &[];
-        sub_list = &_list[i..];
+        let sub_list: &[T] = &_list[i..];
         new_list.push(sub_list);
     }
     new_list
