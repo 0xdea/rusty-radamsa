@@ -15,12 +15,6 @@
 //! |random|&check;|Generator to make random bytes|
 //! |pcapng|&cross;|Generator to generate pcapng data|
 
-use crate::shared::*;
-use log::*;
-use print_bytes::println_lossy;
-use rand::SeedableRng;
-use rand::{Rng, RngCore};
-use rand_chacha::ChaCha20Rng;
 use std::fs::File;
 use std::io::Cursor;
 use std::io::IsTerminal;
@@ -29,18 +23,23 @@ use std::io::Write;
 use std::io::{self, Seek, SeekFrom};
 use std::net::{TcpListener, TcpStream, UdpSocket};
 use std::path::Path;
-use std::path::PathBuf;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
-
-#[cfg(not(test))]
-use log::debug;
-
 #[cfg(test)]
 use std::println as debug;
 
+#[cfg(not(test))]
+use log::debug;
+use log::*;
+use print_bytes::println_lossy;
+use rand::SeedableRng;
+use rand::{Rng, RngCore};
+use rand_chacha::ChaCha20Rng;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
+use crate::shared::*;
+
 // TODO: jump, pcapng
-pub const DEFAULT_GENERATORS: &'static str = "random,buffer=10000,file=1000,jump=200,stdin=10000";
+pub const DEFAULT_GENERATORS: &str = "random,buffer=10000,file=1000,jump=200,stdin=10000";
 pub const STREAM_SEED_BASE: u128 = 100000000000000000000;
 pub const JUMPSTREAM_SEED_BASE: u128 = 0xfffffffff;
 pub const BUFFER_SEED_BASE: u128 = 42;
@@ -197,7 +196,7 @@ impl GenType {
                 let new_rng = ChaCha20Rng::from_rng(_rng)?;
                 let random_stream = RandomStream {
                     rng: Box::new(new_rng),
-                    nblocks: nblocks,
+                    nblocks,
                 };
                 Ok(Box::new(random_stream))
             }
@@ -345,7 +344,7 @@ impl GenericReader for File {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let p = &_path.ok_or(NoneString)?;
         match _permission {
-            "r" => return Ok(File::open(Path::new(p))?),
+            "r" => Ok(File::open(Path::new(p))?),
             "w" => Ok(File::create(Path::new(p))?),
             _ => Err(Box::new(NoneString)),
         }
@@ -458,11 +457,11 @@ impl GenericReader for TcpStream {
                         debug!("waiting for stream!");
                         return Ok(stream);
                     }
-                    return Err(Box::new(NoneString));
+                    Err(Box::new(NoneString))
                 }
                 "w" => {
                     let stream = TcpStream::connect(path)?;
-                    return Ok(stream);
+                    Ok(stream)
                 }
                 _ => Err(Box::new(NoneString)),
             },
@@ -516,12 +515,12 @@ impl GenericReader for UdpSocket {
                         let duration = std::time::Duration::new(10, 0);
                         let dur = std::option::Option::Some(duration);
                         let _res = socket.set_read_timeout(dur)?;
-                        return Ok(socket);
+                        Ok(socket)
                     }
                     "w" => {
                         let socket = UdpSocket::bind(connect_addr)?;
                         socket.connect(bind_addr)?;
-                        return Ok(socket);
+                        Ok(socket)
                     }
                     _ => Err(Box::new(NoneString)),
                 }
@@ -725,7 +724,7 @@ pub fn get_fd(
             let new_rng = ChaCha20Rng::from_rng(_rng)?;
             let random_stream = RandomStream {
                 rng: Box::new(new_rng),
-                nblocks: nblocks,
+                nblocks,
             };
             Ok(Box::new(random_stream))
         }
@@ -755,7 +754,7 @@ pub fn string_generators(_input: &str, _generators: &mut Vec<Generator>) -> Vec<
     let string_list = _input.trim().split(",").collect::<Vec<&str>>();
     for s in string_list {
         let tuple = s.trim().split("=").collect::<Vec<&str>>();
-        let gen_id = tuple.get(0).unwrap_or(&"").trim();
+        let gen_id = tuple.first().unwrap_or(&"").trim();
         let priority = tuple
             .get(1)
             .unwrap_or(&"0")
@@ -775,9 +774,11 @@ pub fn string_generators(_input: &str, _generators: &mut Vec<Generator>) -> Vec<
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+
+    use std::path::PathBuf;
     use std::thread;
+
+    use super::*;
 
     fn filestream() -> PathBuf {
         let base_path = Path::new(".");

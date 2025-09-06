@@ -91,12 +91,13 @@ impl Delimited {
 
     fn unlex(self, v: &mut Vec<u8>) {
         v.push(self.delimitor);
-        v.extend(self.data.into_iter());
+        v.extend(self.data);
         v.push(self.delimitor);
     }
 }
 
 /// parse a string delimited by quotes
+#[allow(clippy::char_lit_as_u8)]
 fn parse_quoted_string(delim: char) -> impl FnMut(&[u8]) -> IResult<&[u8], Delimited> {
     move |input: &[u8]| {
         // parse until a terminating quote character, ignoring escaped quotes
@@ -171,7 +172,7 @@ impl Text {
 
     fn unlex(self, v: &mut Vec<u8>) {
         match self {
-            Text::Texty(a) => v.extend(a.into_iter()),
+            Text::Texty(a) => v.extend(a),
             Text::Delim(delim) => delim.unlex(v),
         }
     }
@@ -181,7 +182,7 @@ fn parse_texty<'a>(input: &'a [u8]) -> IResult<&'a [u8], Vec<Text>> {
     let fold_ascii = |mut acc: Vec<Text>, dat: Text| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous texty blocks
-            (Some(Text::Texty(ref mut a)), Text::Texty(b)) => a.extend(b.into_iter()),
+            (Some(Text::Texty(ref mut a)), Text::Texty(b)) => a.extend(b),
             (_, dat) => acc.push(dat),
         }
         acc
@@ -225,7 +226,7 @@ impl Data {
                     i.unlex(v);
                 }
             }
-            Data::Bytes(a) => v.extend(a.into_iter()),
+            Data::Bytes(a) => v.extend(a),
         }
     }
 }
@@ -249,7 +250,7 @@ fn parse_bytes<'a>(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<
     let fold_bytes = |mut acc: Vec<Data>, dat: Data| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous byte blocks
-            (Some(Data::Bytes(ref mut a)), Data::Bytes(b)) => a.extend(b.into_iter()),
+            (Some(Data::Bytes(ref mut a)), Data::Bytes(b)) => a.extend(b),
             (_, dat) => acc.push(dat),
         }
         acc
@@ -277,7 +278,7 @@ fn parse_bytes<'a>(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<
 
         // combine the mandatory first text chunk with rest of the data
         let mut ret = vec![Data::Texty(text.to_owned())];
-        ret.extend(rest.into_iter());
+        ret.extend(rest);
         Ok((remaining, ret))
     }
 }
@@ -318,9 +319,8 @@ mod ascii_bad {
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha20Rng;
 
-    use crate::mutations::ascii::{Data, Delimited, Text};
-
     use super::Ascii;
+    use crate::mutations::ascii::{Data, Delimited, Text};
 
     #[test]
     fn basic() {

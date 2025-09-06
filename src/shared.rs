@@ -1,12 +1,13 @@
 //! Utility functions for the crate.
 //!
+use std::path::Path;
+use std::time::SystemTime;
+
 use ethnum::*;
 use fraction::Fraction;
 use log::*;
 use rand::{Rng, RngCore};
 use regex::Regex;
-use std::path::Path;
-use std::time::SystemTime;
 use wax::{Glob, GlobError};
 
 pub const AVG_BLOCK_SIZE: usize = 2048;
@@ -16,7 +17,7 @@ pub const MAX_BLOCK_SIZE: usize = 2 * AVG_BLOCK_SIZE;
 pub const REMUTATE_PROBABILITY: f64 = 0.8; // 4/5
 pub const MAX_CHECKSUM_RETRY: usize = 10000;
 pub const MAX_UDP_PACKET_SIZE: usize = 65507;
-pub const SILLY_STRINGS: [&'static str; 2] = ["cmd.exe", "/C"];
+pub const SILLY_STRINGS: [&str; 2] = ["cmd.exe", "/C"];
 
 macro_rules! _vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
@@ -349,9 +350,9 @@ pub(crate) fn rand_occurs(_rng: &mut dyn RngCore, prob: f64) -> bool {
     let denom = *f.denom().unwrap();
     let n = _rng.gen_range(0..denom);
     if nom == 1 {
-        return n == 0;
+        n == 0
     } else {
-        return n < nom;
+        n < nom
     }
 }
 

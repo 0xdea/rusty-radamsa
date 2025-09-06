@@ -47,23 +47,22 @@
 // Add/subtract a random value from 0..16
 // Overwrite contents with zero bytes
 
-use rand::{seq::SliceRandom, Rng};
 use std::collections::BTreeMap;
+#[cfg(test)]
+use std::println as debug;
+
+use ethnum::*;
+#[cfg(not(test))]
+use log::debug;
+use rand::RngCore;
+use rand::{seq::SliceRandom, Rng};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use crate::shared::*;
-use ethnum::*;
-use rand::RngCore;
-
-#[cfg(not(test))]
-use log::debug;
-
-#[cfg(test)]
-use std::println as debug;
 
 // pub const DEFAULT_MUTATIONS: &'static str = "ft=2,fo=2,fn,num=5,td,tr2,ts1,tr,ts2,ld,lds,lr2,li,ls,lp,lr,lis,lrs,sr,sd,bd,bf,bi,br,bp,bei,bed,ber,uw,ui=2,xp=9,ab";
-pub const DEFAULT_MUTATIONS: &'static str =
+pub const DEFAULT_MUTATIONS: &str =
     "ft=2,fo=2,fn,num=5,ld,lds,lr2,li,ls,lp,lr,sr,sd,bd,bf,bi,br,bp,bei,bed,ber,uw,ui=2,ab";
 const MAX_SCORE: usize = 10;
 const MIN_SCORE: usize = 2;
@@ -465,8 +464,8 @@ fn get_num(_data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
                 break;
             }
         }
-        if out.len() == 0 {
-            if data.len() > 0 {
+        if out.is_empty() {
+            if !data.is_empty() {
                 return (None, Some(1));
             } else {
                 return (None, None);
@@ -491,7 +490,7 @@ fn mutate_a_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (isize, Opti
     let mut nfound = 0_usize;
     let mut _which = 0_isize;
     if let Some(data) = _data {
-        if data.len() == 0 {
+        if data.is_empty() {
             return (0, None);
         }
         let mut num_offsets: Vec<(i256, usize, usize)> = vec![];
@@ -548,7 +547,7 @@ pub fn sed_byte_drop(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         new_data.remove(p);
     }
@@ -559,7 +558,7 @@ pub fn sed_byte_inc(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_add(1);
     }
@@ -570,7 +569,7 @@ pub fn sed_byte_dec(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_sub(1);
     }
@@ -581,7 +580,7 @@ pub fn sed_byte_flip(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let b = 1 << _rng.gen_range(0..8);
         let p = _rng.gen_range(0..data.len());
         new_data[p] ^= b;
@@ -618,7 +617,7 @@ pub fn sed_byte_repeat(
     let n = repeat_len(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         let to_repeat = data[p];
         for _ in 0..n {
@@ -636,7 +635,7 @@ pub fn sed_byte_random(
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let b = _rng.gen::<u8>();
         let p = _rng.gen_range(0..data.len());
         new_data[p] = b;
@@ -648,7 +647,7 @@ pub fn sed_byte_perm(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         let n = std::cmp::min(p + _rng.gen_range(2..20), new_data.len());
         new_data[p..n].shuffle(_rng);
@@ -660,7 +659,7 @@ pub fn sed_utf8_widen(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     let d = rand_delta(_rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    if data.len() > 0 {
+    if !data.is_empty() {
         let p = _rng.gen_range(0..data.len());
         // assuming we hit a 6-bit ascii char, make it unnecessarily wide
         // which might confuse a length calculation
@@ -1064,11 +1063,13 @@ pub fn nop(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>,
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+    use std::boxed::Box;
+
     use print_bytes::println_lossy;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
-    use std::boxed::Box;
+
+    use super::*;
 
     #[test]
     fn test_get_num() {

@@ -1,20 +1,20 @@
 //! Mux the outputs.
 //!
 
-use crate::generators::GenericReader;
-use crate::shared::*;
-use log::*;
 use std::fs::File;
 use std::io::{self, Cursor};
 use std::net::{TcpStream, UdpSocket};
-
-#[cfg(not(test))]
-use log::debug;
-
 #[cfg(test)]
 use std::println as debug;
 
-pub const DEFAULT_OUTPUTS: &'static str = "-";
+#[cfg(not(test))]
+use log::debug;
+use log::*;
+
+use crate::generators::GenericReader;
+use crate::shared::*;
+
+pub const DEFAULT_OUTPUTS: &str = "-";
 
 pub fn init_outputs() -> Vec<Output> {
     Vec::from([
@@ -57,7 +57,7 @@ impl Outputs {
         let mut new_outputs: Vec<Output> = vec![];
         for output in &self.outputs {
             if let Some(paths) = &output.paths {
-                if 0 < paths.len() {
+                if !paths.is_empty() {
                     for p in paths {
                         let mut new_output = output.clone();
                         if new_output.set_fd(Some(p.clone()), &None).is_ok() {

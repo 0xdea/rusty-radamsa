@@ -1,5 +1,6 @@
-use crate::shared::*;
 use rand::{Rng, RngCore};
+
+use crate::shared::*;
 
 /// connect prefix of al somewhere to bl, and make sure that (list-fuse l l) != l
 pub(crate) fn fuse<
@@ -118,7 +119,7 @@ fn split_prefixes<
                         true
                     }
                 });
-                if suffixes.len() == 0 {
+                if suffixes.is_empty() {
                     continue;
                 }
             }
@@ -173,9 +174,10 @@ fn find_jump_points<
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
+
+    use super::*;
 
     #[test]
     fn test_alternating() {

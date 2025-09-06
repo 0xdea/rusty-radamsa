@@ -1,23 +1,21 @@
 //! Mux the patterns based on weighted scores.
 //!
 
-use crate::generators::Generator;
-use crate::mutations::Mutations;
-use crate::shared::*;
-use rand::RngCore;
 use std::boxed::Box;
-use std::path::Path;
-use std::path::PathBuf;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
-
-#[cfg(not(test))]
-use log::debug;
-
 #[cfg(test)]
 use std::println as debug;
 
-pub const DEFAULT_PATTERNS: &'static str = "od,nd=2,bu";
+#[cfg(not(test))]
+use log::debug;
+use rand::RngCore;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
+use crate::generators::Generator;
+use crate::mutations::Mutations;
+use crate::shared::*;
+
+pub const DEFAULT_PATTERNS: &str = "od,nd=2,bu";
 
 pub type PatternFunc =
     fn(_gen: &mut Generator, _mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)>;
@@ -138,7 +136,7 @@ pub fn string_patterns(_input: &str, _patterns: &mut Vec<Pattern>) -> Vec<Patter
     let string_list = _input.trim().split(",").collect::<Vec<&str>>();
     for s in string_list {
         let tuple = s.trim().split("=").collect::<Vec<&str>>();
-        let pattern_id = tuple.get(0).unwrap_or(&"").trim();
+        let pattern_id = tuple.first().unwrap_or(&"").trim();
         let priority = tuple
             .get(1)
             .unwrap_or(&"0")
@@ -258,10 +256,14 @@ fn mutate_once(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::shared::_vec_of_strings;
+    use std::path::Path;
+    use std::path::PathBuf;
+
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
+
+    use super::*;
+    use crate::shared::_vec_of_strings;
 
     fn filestream() -> PathBuf {
         let base_path = Path::new(".");

@@ -1,8 +1,9 @@
 //! Checksums used for unique mutations.
 //!
+use std::collections::BTreeMap;
+
 use crc::{Crc, CRC_32_CKSUM, CRC_64_REDIS, CRC_82_DARC};
 use sha2::{Digest, Sha256, Sha512};
-use std::collections::BTreeMap;
 
 // https://reveng.sourceforge.io/crc-catalogue/all.htm
 #[derive(Debug, Clone, Copy)]
@@ -190,13 +191,13 @@ impl Checksums {
     pub fn add(&mut self, hash: Box<[u8]>) -> Option<bool> {
         if self.cache.contains_key(&hash) {
             // exists
-            return Some(true);
+            Some(true)
         } else {
             if self.cache.len() > self.max {
                 return None;
             }
             self.cache.insert(hash, true);
-            return Some(false);
+            Some(false)
         }
     }
     pub fn get_crc<T: CsDigestB>(_digest: &mut T, _data: &Vec<u8>) -> Option<Box<[u8]>> {
@@ -211,7 +212,7 @@ impl Checksums {
         while let Some(block) = iter.next() {
             _digest.updated(&block);
         }
-        return _digest.finalized();
+        _digest.finalized()
     }
 
     pub fn get_digest<T: CsDigest>(_digest: &mut T, _data: &Vec<u8>) -> Option<Box<[u8]>> {
@@ -222,26 +223,26 @@ impl Checksums {
         match &self.checksum.hash_type {
             HashType::Sha | HashType::Sha256 => {
                 let mut d = Sha256::new_digest()?;
-                return Self::get_digest(&mut d, _data);
+                Self::get_digest(&mut d, _data)
             }
             HashType::Sha512 => {
                 let mut d = Sha256::new_digest()?;
-                return Self::get_digest(&mut d, _data);
+                Self::get_digest(&mut d, _data)
             }
             HashType::Crc32 => {
                 let cs = Crc::<u32>::new(&CRC_32_CKSUM);
                 let mut d = cs.digest();
-                return Self::get_crc(&mut d, _data);
+                Self::get_crc(&mut d, _data)
             }
             HashType::Crc | HashType::Crc64 => {
                 let cs = Crc::<u64>::new(&CRC_64_REDIS);
                 let mut d = cs.digest();
-                return Self::get_crc(&mut d, _data);
+                Self::get_crc(&mut d, _data)
             }
             HashType::Crc82 => {
                 let cs = Crc::<u128>::new(&CRC_82_DARC);
                 let mut d = cs.digest();
-                return Self::get_crc(&mut d, _data);
+                Self::get_crc(&mut d, _data)
             }
         }
     }

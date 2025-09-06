@@ -157,9 +157,9 @@ fn build_binary_tree(bytes: &Vec<u8>) -> Option<Node> {
 
 fn partial_parse(_data: &Vec<u8>) -> Option<Node> {
     if is_binarish(Some(_data)) {
-        return None;
+        None
     } else {
-        return build_binary_tree(_data);
+        build_binary_tree(_data)
     }
 }
 fn sublist(_node: &Node) -> Vec<ProcessUniqueId> {
@@ -192,7 +192,7 @@ fn pick_sublist<'a>(_rng: &mut dyn RngCore, _tree: &'a mut Node) -> Option<&'a m
         return None;
     }
     let node_id = rand_elem(_rng, &id_list)?;
-    return _tree.get_mut(*node_id);
+    _tree.get_mut(*node_id)
 }
 
 fn _print_binary_tree(_node: &Node, level: usize) {

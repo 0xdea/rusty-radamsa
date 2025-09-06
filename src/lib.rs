@@ -12,20 +12,20 @@ pub mod patterns;
 pub mod shared;
 mod split;
 
-use crate::shared::time_seed;
-use crate::shared::BadInput;
+use std::boxed::Box;
+use std::ffi::CStr;
+#[cfg(test)]
+use std::println as debug;
+
+#[cfg(not(test))]
+use log::debug;
 use log::*;
 use rand::RngCore;
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
-use std::boxed::Box;
-use std::ffi::CStr;
 
-#[cfg(not(test))]
-use log::debug;
-
-#[cfg(test)]
-use std::println as debug;
+use crate::shared::time_seed;
+use crate::shared::BadInput;
 
 /// Initial radamsa configs
 pub struct Radamsa {
@@ -83,7 +83,7 @@ impl Radamsa {
     pub fn new() -> Radamsa {
         let seed = time_seed();
         Radamsa {
-            seed: seed,
+            seed,
             rng: Box::new(ChaCha20Rng::seed_from_u64(seed)),
             verbose: false,
             count: 0,
@@ -570,8 +570,9 @@ pub extern "C" fn rusty_radamsa(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use print_bytes::println_lossy;
+
+    use super::*;
 
     #[test]
     fn test_digests() {
