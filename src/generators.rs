@@ -222,8 +222,7 @@ impl GenType {
 
 pub fn init_generators() -> Vec<Generator> {
     let mut map = Vec::<Generator>::new();
-    let mut gi = GenType::iter();
-    while let Some(gen) = gi.next() {
+    for gen in GenType::iter() {
         map.push(Generator::new(gen));
     }
     map
@@ -549,7 +548,7 @@ impl GenericReader for UdpSocket {
                     let cursor_len = cursor.write(&buf[..max_len])?;
                     total_len += cursor_len;
                     std::thread::spawn(move || {
-                        sock.send_to(&mut buf[..cursor_len], &src)
+                        sock.send_to(&buf[..cursor_len], src)
                             .expect("Failed to send a response");
                     });
                     if cursor_len < block_len {
@@ -659,8 +658,8 @@ impl GenericReader for RandomStream {
             return Ok(0);
         }
         self.nblocks -= 1;
-        let mut block = random_block(&mut self.rng, size);
-        _buf.copy_from_slice(&mut block);
+        let block = random_block(&mut self.rng, size);
+        _buf.copy_from_slice(&block);
         Ok(_buf.len())
     }
     fn gen_write(
@@ -880,7 +879,7 @@ mod tests {
     }
     #[test]
     fn test_next_block() {
-        let file_len = std::fs::metadata(&filestream()).unwrap().len() as usize;
+        let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         use rand::SeedableRng;
         use rand_chacha::ChaCha20Rng;
         let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
@@ -889,13 +888,13 @@ mod tests {
         generator.set_fd(Some(filestream_str()), None).ok();
         let mut total_len = 0;
         while let (Some(ref block), _last_block) = generator.next_block() {
-            total_len = total_len + block.len();
+            total_len += block.len();
         }
         assert_eq!(total_len, file_len);
     }
     #[test]
     fn test_generators() {
-        let file_len = std::fs::metadata(&filestream()).unwrap().len() as usize;
+        let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         let mut generators = Generators::new();
         generators.init();
         use rand::SeedableRng;
@@ -909,7 +908,7 @@ mod tests {
         let mut total_len = 0;
         if let Some(gen) = generators.mux_generators(&mut rng, &Some(paths), None) {
             while let (Some(block), _last_block) = gen.next_block() {
-                total_len = total_len + block.len();
+                total_len += block.len();
             }
         }
         assert_eq!(total_len, file_len);

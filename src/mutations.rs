@@ -235,20 +235,13 @@ impl MutaType {
         }
     }
     pub fn id_to_mutatype(_id: &str) -> Option<MutaType> {
-        let mut mi = MutaType::iter();
-        while let Some(muta) = mi.next() {
-            if muta.id() == _id {
-                return Some(muta);
-            }
-        }
-        None
+        MutaType::iter().find(|&muta| muta.id() == _id)
     }
 }
 
 pub fn init_mutations() -> BTreeMap<MutaType, Mutator> {
     let mut map = BTreeMap::<MutaType, Mutator>::new();
-    let mut mi = MutaType::iter();
-    while let Some(muta) = mi.next() {
+    for muta in MutaType::iter() {
         map.insert(muta, muta!(muta));
     }
     map

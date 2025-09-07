@@ -209,8 +209,7 @@ impl Checksums {
         _digest: &mut T,
         _data: &[std::boxed::Box<[u8]>],
     ) -> Option<Box<[u8]>> {
-        let mut iter = _data.iter();
-        for block in iter {
+        for block in _data.iter() {
             _digest.updated(block);
         }
         _digest.finalized()
@@ -261,9 +260,8 @@ impl Checksums {
                         HashType::Sha512 => Some(Box::new(Sha512::new_digest()?)),
                         _ => None,
                     };
-                    let mut iter = data.iter();
                     let mut d = digest?;
-                    for block in iter {
+                    for block in data.iter() {
                         d.updated(block);
                     }
                     return d.finalized();

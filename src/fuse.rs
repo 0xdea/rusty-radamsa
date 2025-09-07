@@ -14,7 +14,7 @@ pub(crate) fn fuse<
     if _lista.is_empty() || _listb.is_empty() {
         return _lista.clone();
     }
-    let (from, mut to) = find_jump_points(_rng, &_lista, &_listb);
+    let (from, mut to) = find_jump_points(_rng, _lista, _listb);
     // split and fold
     if let Some(prefix) = _lista.strip_suffix(from.as_slice()) {
         let mut new_data = prefix.to_vec();
@@ -80,8 +80,8 @@ fn suffixes<'a, T: Clone + std::cmp::PartialEq>(
 
 fn any_position_pair<'a, T: Clone>(
     _rng: &mut dyn RngCore,
-    _lista: &'a mut Vec<T>,
-    _listb: &'a mut Vec<T>,
+    _lista: &'a mut [T],
+    _listb: &'a mut [T],
 ) -> Option<(&'a mut T, &'a mut T)> {
     match (rand_elem_mut(_rng, _lista), rand_elem_mut(_rng, _listb)) {
         (Some(from), Some(to)) => Some((from, to)),
@@ -93,10 +93,8 @@ const SEARCH_FUEL: isize = 100000;
 const SEARCH_STOP_IP: usize = 8;
 
 #[allow(suspicious_double_ref_op)]
-fn split_prefixes<
-    'a,
-    T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
->(
+#[allow(clippy::ptr_arg)]
+fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash + Eq + Ord>(
     _prefixes: &Vec<&'a [T]>,
     _suffixes: &Vec<&'a [T]>,
 ) -> (Vec<&'a [T]>, Vec<&'a [T]>) {

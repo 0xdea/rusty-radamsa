@@ -203,10 +203,7 @@ impl Radamsa {
         );
         let mut n = 1;
         let mut p = 0;
-        let mut buffer = match _buffer {
-            Some(b) => Some(b),
-            None => None,
-        };
+        let mut buffer = _buffer;
         self.outputs.init_pipes(&buffer)?;
         // Initial pass
         let generator = self
@@ -238,9 +235,9 @@ impl Radamsa {
                         .generators
                         .mux_generators(&mut self.rng, &_paths, Some(&og_data))
                         .unwrap();
-                    match self.patterns.mux_patterns(generator, &mut self.mutations) {
-                        Some((_, m)) => mut_data = m,
-                        None => {}
+                    if let Some((_, m)) = self.patterns.mux_patterns(generator, &mut self.mutations)
+                    {
+                        mut_data = m
                     }
                     p += 1;
                     debug!("in count loop");
@@ -439,14 +436,12 @@ impl Radamsa {
 /// # Examples
 ///
 /// ```
-/// fn main() {
-///     let data = std::boxed::Box::from("1 2 3 4 5 6 7 8 9 10 11 12\n".as_bytes());
-///     let mut out_buffer = std::boxed::Box::from(vec![0u8; 2048]);
-///     let max_len = 100;
-///     let seed: u64 = 42;
-///     let _len = rusty_radamsa::radamsa(&data, data.len(), &mut out_buffer, max_len, seed);
-///     println!("{:?}", out_buffer);
-/// }
+/// let data = std::boxed::Box::from("1 2 3 4 5 6 7 8 9 10 11 12\n".as_bytes());
+/// let mut out_buffer = std::boxed::Box::from(vec![0u8; 2048]);
+/// let max_len = 100;
+/// let seed: u64 = 42;
+/// let _len = rusty_radamsa::radamsa(&data, data.len(), &mut out_buffer, max_len, seed);
+/// println!("{:?}", out_buffer);
 /// ```
 pub fn radamsa(
     _data: &Box<[u8]>,
@@ -511,7 +506,7 @@ pub extern "C" fn rusty_radamsa_init() -> *mut Radamsa {
 /// }
 /// ```
 #[no_mangle]
-pub extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *const i8) {
+pub unsafe extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *const i8) {
     unsafe {
         let radamsa_instance = &mut *ctx;
         let c_str: &CStr = CStr::from_ptr(config);
@@ -544,7 +539,7 @@ pub extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *const i8
 /// }
 /// ```
 #[no_mangle]
-pub extern "C" fn rusty_radamsa(
+pub unsafe extern "C" fn rusty_radamsa(
     ctx: *mut Radamsa,
     data: *const u8,
     size: usize,
@@ -609,8 +604,7 @@ mod tests {
         assert_eq!(&out_buffer[.._len], &*_expected);
     }
 
-    // TODO: fix timeout
-    // #[test]
+    #[test]
     fn test_lib_tcp() {
         use std::boxed::Box;
         use std::thread;
