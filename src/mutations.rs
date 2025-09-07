@@ -337,17 +337,13 @@ impl Mutations {
         let mut out_mutas: Vec<&mut Mutator> = vec![];
         for (_, m) in self.mutators.iter_mut() {
             if let Some(mutas) = &self.mutas {
-                if mutas.contains(&m.muta) {
-                    if m.priority > 0 {
-                        m.weight = (m.priority * m.score).rands(_rng);
-                        out_mutas.push(m);
-                    }
-                }
-            } else if self.mutator_nodes.contains(&m.muta) {
-                if m.priority > 0 {
+                if mutas.contains(&m.muta) && m.priority > 0 {
                     m.weight = (m.priority * m.score).rands(_rng);
                     out_mutas.push(m);
                 }
+            } else if self.mutator_nodes.contains(&m.muta) && m.priority > 0 {
+                m.weight = (m.priority * m.score).rands(_rng);
+                out_mutas.push(m);
             }
         }
         // Sort by weight
@@ -395,7 +391,7 @@ pub fn string_mutators(_input: &str, _mutators: &mut BTreeMap<MutaType, Mutator>
     //debug!("mutators {:#?}", _mutators);
     for s in string_list {
         let tuple = s.trim().split("=").collect::<Vec<&str>>();
-        let mutator_id = tuple.get(0).unwrap_or(&"").trim();
+        let mutator_id = tuple.first().unwrap_or(&"").trim();
         let priority = tuple
             .get(1)
             .unwrap_or(&"0")
@@ -443,7 +439,7 @@ fn adjust_priority(_pri: usize, _delta: isize) -> usize {
     }
 }
 
-/// Number Mutators
+// Number Mutators
 
 // get digit
 fn get_num(_data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
@@ -451,7 +447,7 @@ fn get_num(_data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     let mut n = i256::from(0);
     if let Some(data) = _data {
         for val in data.iter() {
-            if let Some(_) = char::from(*val).to_digit(10) {
+            if char::from(*val).is_ascii_digit() {
                 out.push(*val);
             } else {
                 break;
@@ -828,13 +824,11 @@ fn get_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
 }
 
 fn try_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
-    if _data.is_none() {
-        return None;
-    }
+    _data?;
     if let Some(lines) = get_lines(_data) {
         if let Some(first_line) = lines.first() {
             // first line (start of block) looks binary
-            if is_binarish(Some(&first_line)) {
+            if is_binarish(Some(first_line)) {
                 return None;
             }
             return Some(lines);
@@ -929,7 +923,7 @@ pub fn sed_line_replace(
 
 pub fn sed_fuse_this(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
-        let new_data = crate::generic::list_fuse(_rng, &data, &data);
+        let new_data = crate::generic::list_fuse(_rng, data, data);
         let d = rand_delta_up(_rng);
         return (Some(new_data), d);
     }
@@ -940,7 +934,7 @@ pub fn sed_fuse_next(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option
     if let Some(data) = _data {
         //split
         let (al1, al2) = data.split_at(data.len() / 2);
-        let abl = crate::generic::list_fuse(_rng, &al1.to_vec(), &data);
+        let abl = crate::generic::list_fuse(_rng, &al1.to_vec(), data);
         let abal = crate::generic::list_fuse(_rng, &abl, &al2.to_vec());
         let d = rand_delta_up(_rng);
         return (Some(abal), d);
@@ -1078,19 +1072,19 @@ mod tests {
         let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
         let (_which, data1) = mutate_a_num(&mut rng, Some(&num_1));
         let d1 = data1.as_ref().unwrap();
-        assert_eq!(std::str::from_utf8(&d1), Ok("321 1487970283344404796\n"));
+        assert_eq!(std::str::from_utf8(d1), Ok("321 1487970283344404796\n"));
         let mut rng2 = ChaCha20Rng::seed_from_u64(1674713110);
         let (_which, data2) = mutate_a_num(&mut rng2, Some(&num_1));
         let d2 = data2.as_ref().unwrap();
         assert_eq!(
-            std::str::from_utf8(&d2),
+            std::str::from_utf8(d2),
             Ok("170141183460469231731687303715884105729 3\n")
         );
         let num_2: Vec<u8> = "1 2 3 4 5 6 7\n".as_bytes().to_vec();
         let mut rng3 = ChaCha20Rng::seed_from_u64(1674713145);
         let (_which, data3) = mutate_a_num(&mut rng3, Some(&num_2));
         let d3 = data3.as_ref().unwrap();
-        assert_eq!(std::str::from_utf8(&d3), Ok("1 2 3 4 -1 6 7\n"));
+        assert_eq!(std::str::from_utf8(d3), Ok("1 2 3 4 -1 6 7\n"));
     }
     #[test]
     fn test_sed_num() {

@@ -251,7 +251,7 @@ pub fn string_outputs(_input: Vec<&str>, _outputs: &mut [Output]) -> Vec<Output>
                     while let Some(path) = iter.next() {
                         paths.push(path.to_string());
                         if let Some(peek) = iter.peek() {
-                            if let Some(_) = _outputs.iter().find(|&x| x.id.eq(*peek)) {
+                            if _outputs.iter().any(|x| x.id.eq(*peek)) {
                                 break;
                             }
                         }

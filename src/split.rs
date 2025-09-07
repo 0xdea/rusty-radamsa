@@ -55,7 +55,7 @@ impl Node {
     fn set_end_index(&mut self, end: usize) {
         self.end_index = end;
     }
-    fn get_mut<'a>(&'a mut self, node_id: ProcessUniqueId) -> Option<&'a mut Node> {
+    fn get_mut(&mut self, node_id: ProcessUniqueId) -> Option<&mut Node> {
         for child in &mut self.children {
             if child.id == node_id {
                 return Some(child);
@@ -85,29 +85,17 @@ impl Node {
 }
 
 fn check_delim_open(byte: &u8) -> Option<(u8, u8)> {
-    for delim in USUAL_DELIMS {
-        if delim.0 == *byte {
-            return Some(delim);
-        }
-    }
-    None
+    USUAL_DELIMS.into_iter().find(|&delim| delim.0 == *byte)
 }
 
 fn check_delim_close(byte: &u8) -> Option<(u8, u8)> {
-    for delim in USUAL_DELIMS {
-        if delim.1 == *byte {
-            return Some(delim);
-        }
-    }
-    None
+    USUAL_DELIMS.into_iter().find(|&delim| delim.1 == *byte)
 }
 
 fn check_node(node: &Node, _delim: Option<(u8, u8)>, index: usize) -> bool {
     if let Some(delim) = _delim {
-        if node.delim.0 == delim.0 {
-            if index != node.start_index {
-                return true;
-            }
+        if node.delim.0 == delim.0 && index != node.start_index {
+            return true;
         }
     }
     false
@@ -169,7 +157,7 @@ fn sublist(_node: &Node) -> Vec<ProcessUniqueId> {
         id_list.push(_node.id);
     }
     for child in &_node.children {
-        let mut new_ids = sublist(&child);
+        let mut new_ids = sublist(child);
         id_list.append(&mut new_ids);
     }
     id_list
@@ -308,13 +296,13 @@ pub(crate) fn sed_tree_op(
             let n_reps = 10.rand_log(_rng);
             let node = pick_sublist(_rng, &mut tree)?.clone();
             let parent_id = node.parent_id?;
-            let mut parent_node = tree.get_mut(parent_id)?;
+            let parent_node = tree.get_mut(parent_id)?;
             let index = parent_node
                 .children
                 .iter()
                 .position(|r| r.id == node.id)
                 .unwrap();
-            repeat_path(&mut parent_node, index, n_reps);
+            repeat_path(parent_node, index, n_reps);
             debug!("n_reps: {}", n_reps);
         }
         TreeMutate::TreeSwapReplace => {

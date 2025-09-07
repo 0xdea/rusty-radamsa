@@ -123,8 +123,7 @@ impl Pattern {
 
 pub fn init_patterns() -> Vec<Pattern> {
     let mut list = Vec::<Pattern>::new();
-    let mut pi = PatternType::iter();
-    while let Some(pattern) = pi.next() {
+    for pattern in PatternType::iter() {
         list.push(Pattern::new(pattern));
     }
     list
@@ -215,7 +214,7 @@ fn mutate_multi(
     for data in _data {
         let n = ip.rands(_rng);
         if n == 0 {
-            if let Some(new_data) = _mutas.mux_fuzzers(_rng, Some(&data)) {
+            if let Some(new_data) = _mutas.mux_fuzzers(_rng, Some(data)) {
                 output.push(new_data);
                 ip += 1;
             } else {
@@ -278,7 +277,7 @@ mod tests {
     #[test]
     fn test_mutate_once() {
         //let path = ".\\tests\\filestream.txt".to_string();
-        let file_len = std::fs::metadata(&filestream()).unwrap().len() as usize;
+        let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         let mut generators = crate::generators::Generators::new();
         generators.init();
         let mut rng = ChaCha20Rng::seed_from_u64(42);

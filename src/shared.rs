@@ -281,8 +281,8 @@ pub(crate) fn mutate_num(_rng: &mut dyn RngCore, _num: i256) -> i256 {
     let choice = 12_usize.rands(_rng);
     let nums = interesting_numbers();
     match choice {
-        0 => I256::from(_num).overflowing_add(I256::from(1)).0,
-        1 => I256::from(_num).overflowing_sub(I256::from(1)).0,
+        0 => _num.overflowing_add(I256::from(1)).0,
+        1 => _num.overflowing_sub(I256::from(1)).0,
         2 => I256::from(0),
         3 => I256::from(1),
         4 => *rand_elem(_rng, &nums).unwrap_or(&I256::from(0)),
@@ -311,7 +311,7 @@ pub(crate) fn mutate_num(_rng: &mut dyn RngCore, _num: i256) -> i256 {
                 0 => _num - n,
                 _ => _num + n,
             };
-            I256::from(val)
+            val
         }
     }
 }
@@ -325,9 +325,8 @@ pub(crate) fn choose_priority<T: PriorityList + std::fmt::Debug>(
     init: usize,
 ) -> Option<&mut T> {
     let len = v.len();
-    let mut iter = v.iter_mut();
     let mut n: isize = init as isize;
-    while let Some(next) = iter.next() {
+    for next in v.iter_mut() {
         if n < next.priority() as isize {
             return Some(next);
         }
@@ -397,7 +396,7 @@ pub fn get_files(_files: Vec<String>) -> Result<Vec<String>, GlobError<'static>>
                 }
             };
             let parent = parent.unwrap().canonicalize().ok();
-            if let Some(g) = Glob::new(&filepattern).ok() {
+            if let Ok(g) = Glob::new(&filepattern) {
                 let dir_path = parent.unwrap_or(".".into());
                 for entry in g.walk(dir_path, 1) {
                     if let Some(e) = entry.ok() {
