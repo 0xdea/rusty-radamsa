@@ -293,23 +293,17 @@ impl Generator {
     }
     pub fn next_block(&mut self) -> (Option<Vec<u8>>, bool) {
         let mut buf = vec![0u8; self.block_size];
-        match self.fd {
-            Some(ref mut fd) => {
-                let n = match read_byte_vector(fd, &mut buf, 0) {
-                    Ok(n) => n,
-                    Err(_) => 0,
-                };
-                if n == 0 {
-                    return (None, false);
-                }
-                if n < self.block_size {
-                    let last_block = Vec::from(&buf[0..n]);
-                    return (Some(last_block), true);
-                }
-                self.block_size = rand_block_size(self.rng.as_mut().unwrap());
-                return (Some(buf), false);
+        if let Some(ref mut fd) = self.fd {
+            let n = read_byte_vector(fd, &mut buf, 0).unwrap_or_default();
+            if n == 0 {
+                return (None, false);
             }
-            None => {}
+            if n < self.block_size {
+                let last_block = Vec::from(&buf[0..n]);
+                return (Some(last_block), true);
+            }
+            self.block_size = rand_block_size(self.rng.as_mut().unwrap());
+            return (Some(buf), false);
         }
         (None, false)
     }
@@ -516,7 +510,7 @@ impl GenericReader for UdpSocket {
                         let socket = UdpSocket::bind(bind_addr)?;
                         let duration = std::time::Duration::new(10, 0);
                         let dur = std::option::Option::Some(duration);
-                        let _res = socket.set_read_timeout(dur)?;
+                        socket.set_read_timeout(dur)?;
                         Ok(socket)
                     }
                     "w" => {
@@ -825,10 +819,7 @@ mod tests {
         let mut fd = get_fd(&mut rng, &GenType::File, Some(filestream_str()), None).ok();
         let mut _n = 0;
         loop {
-            _n = match read_byte_vector(&mut fd.as_mut().unwrap(), &mut buf, 0) {
-                Ok(n) => n,
-                Err(_) => 0,
-            };
+            _n = read_byte_vector(fd.as_mut().unwrap(), &mut buf, 0).unwrap_or_default();
             if _n == 0 {
                 break;
             }
