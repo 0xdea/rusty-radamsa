@@ -186,6 +186,7 @@ impl Radamsa {
     /// let len = rad.fuzz(None, Some(paths), Some(&mut out_buffer)).unwrap_or(0);
     /// assert_eq!(len, 100)
     /// ```
+    #[allow(clippy::borrowed_box)]
     pub fn fuzz(
         &mut self,
         _data: Option<&Box<[u8]>>,
@@ -443,6 +444,7 @@ impl Radamsa {
 /// let _len = rusty_radamsa::radamsa(&data, data.len(), &mut out_buffer, max_len, seed);
 /// println!("{:?}", out_buffer);
 /// ```
+#[allow(clippy::borrowed_box)]
 pub fn radamsa(
     _data: &Box<[u8]>,
     _len: usize,
