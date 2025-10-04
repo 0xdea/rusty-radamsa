@@ -306,7 +306,7 @@ pub(crate) fn sed_tree_op(
             debug!("n_reps: {}", n_reps);
         }
         TreeMutate::TreeSwapReplace => {
-            let mut node_list = sublist(&mut tree);
+            let mut node_list = sublist(&tree);
             if node_list.len() < 2 {
                 return None;
             }
@@ -319,7 +319,7 @@ pub(crate) fn sed_tree_op(
             *node = toswap_node;
         }
         TreeMutate::TreeSwapPair => {
-            let mut node_list = sublist(&mut tree);
+            let mut node_list = sublist(&tree);
             if node_list.len() < 2 {
                 return None;
             }

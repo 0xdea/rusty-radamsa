@@ -227,6 +227,7 @@ fn mutate_multi(
     Some(output)
 }
 
+#[allow(clippy::type_complexity)]
 fn mutate_once(
     //_rng: &mut dyn RngCore,
     _gen: &mut Generator,

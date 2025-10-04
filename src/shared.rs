@@ -307,11 +307,10 @@ pub(crate) fn mutate_num(_rng: &mut dyn RngCore, _num: i256) -> i256 {
             let mut n = _rng.gen_range(1..129);
             n = n.rand_log(_rng);
             let s = 3.rands(_rng);
-            let val = match s {
+            match s {
                 0 => _num - n,
                 _ => _num + n,
-            };
-            val
+            }
         }
     }
 }
