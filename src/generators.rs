@@ -68,6 +68,8 @@ impl Generators {
     pub fn default_generators(&mut self) {
         self.generator_nodes = string_generators(DEFAULT_GENERATORS, &mut self.generators);
     }
+
+    #[allow(clippy::borrowed_box)]
     pub fn mux_generators(
         &mut self,
         _rng: &mut impl Rng,
