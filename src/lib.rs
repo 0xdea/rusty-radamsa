@@ -1,6 +1,4 @@
 #![doc = include_str!("../README.md")]
-#[macro_use]
-extern crate lazy_static;
 
 pub mod digest;
 mod fuse;

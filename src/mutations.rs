@@ -662,99 +662,97 @@ pub fn sed_utf8_widen(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     (Some(new_data), d)
 }
 
-lazy_static! {
-    static ref FUNNY_UNICODE: Vec< Vec<u8> > = {
-        let mut ret = Vec::new();
-        ret.push("\u{202E}".to_string().into_bytes());  // Right to Left Override
-        ret.push("\u{202D}".to_string().into_bytes());  // Left to Right Override
-        ret.push("\u{180E}".to_string().into_bytes());  // Mongolian Vowel Separator
-        ret.push("\u{2060}".to_string().into_bytes());  // Word Joiner
-        ret.push("\u{FEFE}".to_string().into_bytes());  // reserved
-        ret.push("\u{FFFF}".to_string().into_bytes());  // not a character
-        ret.push("\u{0FED}".to_string().into_bytes());  // unassigned
-        ret.push(vec![0xed, 0xba, 0xad]);               // U+DEAD illegal low surrogate
-        ret.push(vec![0xed, 0xaa, 0xad]);               // U+DAAD illegal high surrogate
-        ret.push("\u{F8FF}".to_string().into_bytes());  // private use char (Apple)
-        ret.push("\u{FF0F}".to_string().into_bytes());  // full width solidus
-        ret.push("\u{1D7D6}".to_string().into_bytes()); // MATHEMATICAL BOLD DIGIT EIGHT
-        ret.push("\u{00DF}".to_string().into_bytes());  // IDNA deviant
-        ret.push("\u{FDFD}".to_string().into_bytes());  // expands by 11x (UTF-8) and 18x (UTF-16) NFKC
-        ret.push("\u{0390}".to_string().into_bytes());  // expands by 3x (UTF-8) NFD
-        ret.push("\u{1F82}".to_string().into_bytes());  // expands by 4x (UTF-16) NFD
-        ret.push("\u{FB2C}".to_string().into_bytes());  // expands by 3x (UTF-16) under NFC
-        ret.push("\u{1D160}".to_string().into_bytes()); // expands by 3x (UTF-8) under NFC
-        ret.push(vec![0xf4, 0x8f, 0xbf, 0xbe]);         // illegal outside end of max range U+10FFFF
-        ret.push(vec![239, 191, 191]);                  // 65535
-        ret.push(vec![240, 144, 128, 128]);             // 65536
-        ret.push(vec![0xef, 0xbb, 0xbf]);               // the canonical utf8 bom
-        ret.push(vec![0xfe, 0xff]);                     // utf16 be bom
-        ret.push(vec![0xff, 0xfe]);                     // utf16 le bom
-        ret.push(vec![0, 0, 0xff, 0xff]);               // ascii null be
-        ret.push(vec![0xff, 0xff, 0, 0]);               // ascii null le
-        ret.push(vec![43, 47, 118, 56]);                // and some others from wikipedia
-        ret.push(vec![43, 47, 118, 57]);
-        ret.push(vec![43, 47, 118, 43]);
-        ret.push(vec![43, 47, 118, 47]);
-        ret.push(vec![247, 100, 76]);
-        ret.push(vec![221, 115, 102, 115]);
-        ret.push(vec![14, 254, 255]);
-        ret.push(vec![251, 238, 40]);
-        ret.push(vec![251, 238, 40, 255]);
-        ret.push(vec![132, 49, 149, 51]);
+static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::new(|| {
+    let mut ret = Vec::new();
+    ret.push("\u{202E}".to_string().into_bytes()); // Right to Left Override
+    ret.push("\u{202D}".to_string().into_bytes()); // Left to Right Override
+    ret.push("\u{180E}".to_string().into_bytes()); // Mongolian Vowel Separator
+    ret.push("\u{2060}".to_string().into_bytes()); // Word Joiner
+    ret.push("\u{FEFE}".to_string().into_bytes()); // reserved
+    ret.push("\u{FFFF}".to_string().into_bytes()); // not a character
+    ret.push("\u{0FED}".to_string().into_bytes()); // unassigned
+    ret.push(vec![0xed, 0xba, 0xad]); // U+DEAD illegal low surrogate
+    ret.push(vec![0xed, 0xaa, 0xad]); // U+DAAD illegal high surrogate
+    ret.push("\u{F8FF}".to_string().into_bytes()); // private use char (Apple)
+    ret.push("\u{FF0F}".to_string().into_bytes()); // full width solidus
+    ret.push("\u{1D7D6}".to_string().into_bytes()); // MATHEMATICAL BOLD DIGIT EIGHT
+    ret.push("\u{00DF}".to_string().into_bytes()); // IDNA deviant
+    ret.push("\u{FDFD}".to_string().into_bytes()); // expands by 11x (UTF-8) and 18x (UTF-16) NFKC
+    ret.push("\u{0390}".to_string().into_bytes()); // expands by 3x (UTF-8) NFD
+    ret.push("\u{1F82}".to_string().into_bytes()); // expands by 4x (UTF-16) NFD
+    ret.push("\u{FB2C}".to_string().into_bytes()); // expands by 3x (UTF-16) under NFC
+    ret.push("\u{1D160}".to_string().into_bytes()); // expands by 3x (UTF-8) under NFC
+    ret.push(vec![0xf4, 0x8f, 0xbf, 0xbe]); // illegal outside end of max range U+10FFFF
+    ret.push(vec![239, 191, 191]); // 65535
+    ret.push(vec![240, 144, 128, 128]); // 65536
+    ret.push(vec![0xef, 0xbb, 0xbf]); // the canonical utf8 bom
+    ret.push(vec![0xfe, 0xff]); // utf16 be bom
+    ret.push(vec![0xff, 0xfe]); // utf16 le bom
+    ret.push(vec![0, 0, 0xff, 0xff]); // ascii null be
+    ret.push(vec![0xff, 0xff, 0, 0]); // ascii null le
+    ret.push(vec![43, 47, 118, 56]); // and some others from wikipedia
+    ret.push(vec![43, 47, 118, 57]);
+    ret.push(vec![43, 47, 118, 43]);
+    ret.push(vec![43, 47, 118, 47]);
+    ret.push(vec![247, 100, 76]);
+    ret.push(vec![221, 115, 102, 115]);
+    ret.push(vec![14, 254, 255]);
+    ret.push(vec![251, 238, 40]);
+    ret.push(vec![251, 238, 40, 255]);
+    ret.push(vec![132, 49, 149, 51]);
 
-        enum Range {
-            Interval(u32, u32),
-            Scalar(u32)
-        }
+    enum Range {
+        Interval(u32, u32),
+        Scalar(u32),
+    }
 
-        let valid_points_and_ranges = vec![
-            Range::Interval(0x0009, 0x000d),
-            Range::Scalar(0x00a0),
-            Range::Scalar(0x1680),
-            Range::Scalar(0x180e),
-            Range::Interval(0x2000, 0x200a),
-            Range::Scalar(0x2028),
-            Range::Scalar(0x2029),
-            Range::Scalar(0x202f),
-            Range::Scalar(0x205f),
-            Range::Scalar(0x3000),
-            Range::Interval(0x200e, 0x200f),
-            Range::Interval(0x202a, 0x202e),
-            Range::Interval(0x200c, 0x200d),
-            Range::Scalar(0x0345),
-            Range::Scalar(0x00b6),
-            Range::Interval(0x02d0, 0x02d1),
-            Range::Scalar(0xff70),
-            Range::Interval(0x02b0, 0x02b8),
-            Range::Scalar(0xfdd0),
-            Range::Scalar(0x034f),
-            Range::Interval(0x115f, 0x1160),
-            Range::Interval(0x2065, 0x2069),
-            Range::Scalar(0x3164),
-            Range::Scalar(0xffa0),
-            Range::Scalar(0xe0001),
-            Range::Interval(0xe0020, 0xe007f),
-            Range::Interval(0x0e40, 0x0e44),
-            Range::Scalar(0x1f4a9), // poop emoji?
-        ];
+    let valid_points_and_ranges = vec![
+        Range::Interval(0x0009, 0x000d),
+        Range::Scalar(0x00a0),
+        Range::Scalar(0x1680),
+        Range::Scalar(0x180e),
+        Range::Interval(0x2000, 0x200a),
+        Range::Scalar(0x2028),
+        Range::Scalar(0x2029),
+        Range::Scalar(0x202f),
+        Range::Scalar(0x205f),
+        Range::Scalar(0x3000),
+        Range::Interval(0x200e, 0x200f),
+        Range::Interval(0x202a, 0x202e),
+        Range::Interval(0x200c, 0x200d),
+        Range::Scalar(0x0345),
+        Range::Scalar(0x00b6),
+        Range::Interval(0x02d0, 0x02d1),
+        Range::Scalar(0xff70),
+        Range::Interval(0x02b0, 0x02b8),
+        Range::Scalar(0xfdd0),
+        Range::Scalar(0x034f),
+        Range::Interval(0x115f, 0x1160),
+        Range::Interval(0x2065, 0x2069),
+        Range::Scalar(0x3164),
+        Range::Scalar(0xffa0),
+        Range::Scalar(0xe0001),
+        Range::Interval(0xe0020, 0xe007f),
+        Range::Interval(0x0e40, 0x0e44),
+        Range::Scalar(0x1f4a9), // poop emoji?
+    ];
 
-        // convert unicode code points and ranges to utf-8
-        for i in valid_points_and_ranges.iter() {
-            match i {
-                Range::Interval(lo, hi) => {
-                    for p in *lo..=*hi {
-                        ret.push(char::from_u32(p).unwrap().to_string().into_bytes());
-                    }
-                }
-                Range::Scalar(p) => {
-                    ret.push(char::from_u32(*p).unwrap().to_string().into_bytes());
+    // convert unicode code points and ranges to utf-8
+    for i in valid_points_and_ranges.iter() {
+        match i {
+            Range::Interval(lo, hi) => {
+                for p in *lo..=*hi {
+                    ret.push(char::from_u32(p).unwrap().to_string().into_bytes());
                 }
             }
+            Range::Scalar(p) => {
+                ret.push(char::from_u32(*p).unwrap().to_string().into_bytes());
+            }
         }
+    }
 
-        ret
-    };
-}
+    ret
+});
 
 pub fn sed_utf8_insert(
     _rng: &mut dyn RngCore,

@@ -8,24 +8,22 @@ use nom::sequence::preceded;
 use nom::{IResult, Parser};
 use rand::{seq::SliceRandom, Rng, RngCore};
 
-lazy_static! {
-    static ref SILLY_STRINGS: Vec<Vec<u8>> = {
-        // XXX: extend this because many of these strings are incredibly Linux-specific
-        // perhaps add a configurable wordlist
-        #[rustfmt::skip]
-        let ret = vec![
-            "%n", "%n", "%s", "%d", "%p", "%#x",
-            "\\00", "aaaa%d%n",
-            "`xcalc`", ";xcalc", "$(xcalc)", "!xcalc", "\"xcalc", "'xcalc",
-            "\\x00", "\\r\\n", "\\r", "\\n", "\\x0a", "\\x0d",
-            "NaN", "+inf",
-            "$PATH",
-            "$!!", "!!", "&#000;", "\\u0000",
-            "$&", "$+", "$`", "$'", "$1",
-        ];
-        ret.into_iter().map(|x| x.as_bytes().to_owned()).collect()
-    };
-}
+static SILLY_STRINGS: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::new(|| {
+    // XXX: extend this because many of these strings are incredibly Linux-specific
+    // perhaps add a configurable wordlist
+    #[rustfmt::skip]
+    let ret = vec![
+        "%n", "%n", "%s", "%d", "%p", "%#x",
+        "\\00", "aaaa%d%n",
+        "`xcalc`", ";xcalc", "$(xcalc)", "!xcalc", "\"xcalc", "'xcalc",
+        "\\x00", "\\r\\n", "\\r", "\\n", "\\x0a", "\\x0d",
+        "NaN", "+inf",
+        "$PATH",
+        "$!!", "!!", "&#000;", "\\u0000",
+        "$&", "$+", "$`", "$'", "$1",
+    ];
+    ret.into_iter().map(|x| x.as_bytes().to_owned()).collect()
+});
 
 fn random_badness(_rng: &mut dyn RngCore) -> Vec<u8> {
     // concatenate between 1 and 20 random silly strings
