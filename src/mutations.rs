@@ -298,6 +298,7 @@ impl Mutator {
     }
 }
 
+#[allow(clippy::new_without_default)]
 impl Mutations {
     pub fn new() -> Mutations {
         Mutations {

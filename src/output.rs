@@ -36,6 +36,8 @@ pub struct Outputs {
     pub truncate: usize,
     pub resize: bool,
 }
+
+#[allow(clippy::new_without_default)]
 impl Outputs {
     pub fn new() -> Outputs {
         Outputs {

@@ -71,6 +71,8 @@ impl std::fmt::Debug for Radamsa {
     }
 }
 
+#[allow(clippy::new_without_default)]
+#[allow(clippy::should_implement_trait)]
 impl Radamsa {
     /// Constructs a new radamsa object with uninitialized contents.
     /// The seed for rand is based on time. See [time_seed].
@@ -495,6 +497,20 @@ pub extern "C" fn rusty_radamsa_init() -> *mut Radamsa {
 
 /// This C FFI function is used to set the mutator string to customize mutators.
 ///
+/// # Safety
+///
+/// This function is unsafe because it dereferences raw pointers and performs FFI operations.
+/// Callers must ensure the following invariants:
+///
+/// * `ctx` must be a valid, non-null pointer to a `Radamsa` instance that was previously
+///   created by `rusty_radamsa_init()` or another valid constructor.
+/// * `ctx` must be properly aligned and point to a fully initialized `Radamsa` struct.
+/// * `ctx` must not be accessed concurrently from other threads during this call.
+/// * `config` must be a valid, non-null pointer to a null-terminated C string (valid UTF-8).
+/// * `config` must remain valid for the duration of this function call.
+/// * The memory pointed to by `ctx` must not have been freed or deallocated.
+/// * The caller is responsible for ensuring `ctx` has exclusive access (no aliasing mutable references).
+///
 /// # Examples
 ///
 /// ```text
@@ -522,6 +538,24 @@ pub unsafe extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *c
 ///
 /// A seed is required to produce new a new rand number.
 /// The maximum size is truncating the output.
+///
+/// # Safety
+///
+/// This function is unsafe because it dereferences raw pointers, creates slices from raw memory, and
+/// performs FFI operations. Callers must ensure the following invariants:
+///
+/// * `ctx` must be a valid, non-null pointer to a `Radamsa` instance that was previously
+///   created by `rusty_radamsa_init()` or another valid constructor.
+/// * `ctx` must be properly aligned and point to a fully initialized `Radamsa` struct.
+/// * `ctx` must not be accessed concurrently from other threads during this call.
+/// * `data` must be a valid, non-null pointer to a readable memory region of at least `size` bytes.
+/// * `data` must remain valid and unchanged for the duration of this function call.
+/// * `out` must be a valid, non-null pointer to a writable memory region of at least `max_size` bytes.
+/// * `out` must not overlap with `data` memory region (undefined behavior if they alias).
+/// * `size` must accurately represent the number of valid bytes at `data` (must not exceed allocation).
+/// * `max_size` must accurately represent the number of writable bytes at `out` (must not exceed allocation).
+/// * The memory regions pointed to by `ctx`, `data`, and `out` must not have been freed or deallocated.
+/// * The caller is responsible for ensuring `ctx` has exclusive access during this call.
 ///
 /// # Examples
 ///

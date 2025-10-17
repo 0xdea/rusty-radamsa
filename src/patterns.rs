@@ -64,6 +64,7 @@ pub struct Patterns {
     pub pattern_nodes: Vec<PatternType>,
 }
 
+#[allow(clippy::new_without_default)]
 impl Patterns {
     pub fn new() -> Patterns {
         Patterns {
