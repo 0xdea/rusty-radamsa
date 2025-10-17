@@ -163,6 +163,7 @@ fn sublist(_node: &Node) -> Vec<ProcessUniqueId> {
     id_list
 }
 
+#[allow(clippy::enum_variant_names)]
 pub enum TreeMutate {
     TreeDup,         // tr2 - duplicate adjacently
     TreeDel,         // td - remove node
