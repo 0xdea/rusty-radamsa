@@ -17,6 +17,7 @@ pub enum HashType {
     Crc82, //CRC_82_DARC
 }
 
+#[must_use]
 pub fn init_digests() -> Vec<Checksum> {
     Vec::from([
         Checksum::new("sha", "Default Hash Sha-256", HashType::Sha),
@@ -29,8 +30,8 @@ pub fn init_digests() -> Vec<Checksum> {
     ])
 }
 
-pub fn string_digest(_input: &str, _checksums: &mut [Checksum]) -> Option<Checksum> {
-    if let Some(c) = _checksums.iter().find(|&x| x.id == _input) {
+pub fn string_digest(input: &str, checksums: &mut [Checksum]) -> Option<Checksum> {
+    if let Some(c) = checksums.iter().find(|&x| x.id == input) {
         return Some(c.clone());
     }
     None
@@ -60,8 +61,8 @@ impl CsDigest for sha2::Sha256 {
     {
         None
     }
-    fn updated(&mut self, _data: &[u8]) {
-        self.update(_data)
+    fn updated(&mut self, data: &[u8]) {
+        self.update(data);
     }
     fn finalized(&mut self) -> Option<Box<[u8]>> {
         let f = sha2::Sha256::finalize(self.clone())
@@ -84,8 +85,8 @@ impl CsDigest for sha2::Sha512 {
     {
         None
     }
-    fn updated(&mut self, _data: &[u8]) {
-        self.update(_data)
+    fn updated(&mut self, data: &[u8]) {
+        self.update(data);
     }
     fn finalized(&mut self) -> Option<Box<[u8]>> {
         let f = sha2::Sha512::finalize(self.clone())
@@ -153,11 +154,12 @@ pub struct Checksum {
 }
 
 impl Checksum {
-    pub fn new(_id: &str, _desc: &str, _hash_type: HashType) -> Checksum {
-        Checksum {
-            id: _id.to_string(),
-            desc: _desc.to_string(),
-            hash_type: _hash_type,
+    #[must_use]
+    pub fn new(id: &str, desc: &str, hash_type: HashType) -> Self {
+        Self {
+            id: id.to_string(),
+            desc: desc.to_string(),
+            hash_type,
         }
     }
 }
@@ -178,8 +180,9 @@ impl Default for Checksums {
 
 impl Checksums {
     // new
-    pub fn new() -> Checksums {
-        Checksums {
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
             checksum: Checksum::new("sha", "Default Hash Sha-256", HashType::Sha),
             cache: BTreeMap::new(),
             max: 10000, // default,\
@@ -200,56 +203,58 @@ impl Checksums {
         }
     }
 
-    pub fn get_crc<T: CsDigestB>(_digest: &mut T, _data: &[u8]) -> Option<Box<[u8]>> {
-        _digest.updated(_data);
-        _digest.finalized()
+    pub fn get_crc<T: CsDigestB>(digest: &mut T, data: &[u8]) -> Option<Box<[u8]>> {
+        digest.updated(data);
+        digest.finalized()
     }
 
     pub fn get_crc_blocks<T: CsDigestB>(
-        _digest: &mut T,
-        _data: &[std::boxed::Box<[u8]>],
+        digest: &mut T,
+        data: &[std::boxed::Box<[u8]>],
     ) -> Option<Box<[u8]>> {
-        for block in _data.iter() {
-            _digest.updated(block);
+        for block in data.iter() {
+            digest.updated(block);
         }
-        _digest.finalized()
+        digest.finalized()
     }
 
-    pub fn get_digest<T: CsDigest>(_digest: &mut T, _data: &[u8]) -> Option<Box<[u8]>> {
-        _digest.updated(_data);
-        _digest.finalized()
+    pub fn get_digest<T: CsDigest>(digest: &mut T, data: &[u8]) -> Option<Box<[u8]>> {
+        digest.updated(data);
+        digest.finalized()
     }
 
-    pub fn digest_data(&self, _data: &[u8]) -> Option<Box<[u8]>> {
+    #[must_use]
+    pub fn digest_data(&self, data: &[u8]) -> Option<Box<[u8]>> {
         match &self.checksum.hash_type {
             HashType::Sha | HashType::Sha256 => {
                 let mut d = Sha256::new_digest()?;
-                Self::get_digest(&mut d, _data)
+                Self::get_digest(&mut d, data)
             }
             HashType::Sha512 => {
                 let mut d = Sha256::new_digest()?;
-                Self::get_digest(&mut d, _data)
+                Self::get_digest(&mut d, data)
             }
             HashType::Crc32 => {
                 let cs = Crc::<u32>::new(&CRC_32_CKSUM);
                 let mut d = cs.digest();
-                Self::get_crc(&mut d, _data)
+                Self::get_crc(&mut d, data)
             }
             HashType::Crc | HashType::Crc64 => {
                 let cs = Crc::<u64>::new(&CRC_64_REDIS);
                 let mut d = cs.digest();
-                Self::get_crc(&mut d, _data)
+                Self::get_crc(&mut d, data)
             }
             HashType::Crc82 => {
                 let cs = Crc::<u128>::new(&CRC_82_DARC);
                 let mut d = cs.digest();
-                Self::get_crc(&mut d, _data)
+                Self::get_crc(&mut d, data)
             }
         }
     }
 
-    pub fn digest_blocks(&self, _data: Option<&Vec<Box<[u8]>>>) -> Option<Box<[u8]>> {
-        if let Some(data) = _data {
+    #[must_use]
+    pub fn digest_blocks(&self, data: Option<&Vec<Box<[u8]>>>) -> Option<Box<[u8]>> {
+        if let Some(data) = data {
             match &self.checksum.hash_type {
                 HashType::Sha | HashType::Sha256 | HashType::Sha512 => {
                     let digest: Option<Box<dyn CsDigest>> = match &self.checksum.hash_type {
