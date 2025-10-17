@@ -299,12 +299,12 @@ impl Radamsa {
     /// rad.init();
     /// rad.set_mutators("bd=3,bf,num=2");
     /// ```
-    pub fn set_mutators(&mut self, _mut: &str) -> Result<(), Box<dyn std::error::Error>> {
-        if _mut == "default" {
+    pub fn set_mutators(&mut self, muta: &str) -> Result<(), Box<dyn std::error::Error>> {
+        if muta == "default" {
             self.mutations.default_mutations();
         } else {
             self.mutations.mutator_nodes =
-                crate::mutations::string_mutators(_mut, &mut self.mutations.mutators);
+                crate::mutations::string_mutators(muta, &mut self.mutations.mutators);
         }
         if self.mutations.mutator_nodes.is_empty() {
             Err(Box::new(BadInput))

@@ -112,6 +112,7 @@ pub enum MutaType {
 }
 
 impl MutaType {
+    #[must_use]
     pub fn id(&self) -> String {
         use MutaType::*;
         let id = match *self {
@@ -153,6 +154,7 @@ impl MutaType {
         };
         id.to_string()
     }
+    #[must_use]
     pub fn info(&self) -> String {
         use MutaType::*;
         let info = match *self {
@@ -194,51 +196,53 @@ impl MutaType {
         };
         info.to_string()
     }
-    fn mutate(&self, _rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    fn mutate(&self, rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
         use MutaType::*;
         match *self {
-            AsciiBad => ascii_bad(_rng, _data),
-            ByteDrop => sed_byte_drop(_rng, _data),
-            ByteFlip => sed_byte_flip(_rng, _data),
-            ByteInsert => sed_byte_insert(_rng, _data),
-            ByteRepeat => sed_byte_repeat(_rng, _data),
-            BytePerm => sed_byte_perm(_rng, _data),
-            ByteInc => sed_byte_inc(_rng, _data),
-            ByteDec => sed_byte_dec(_rng, _data),
-            ByteRand => sed_byte_random(_rng, _data),
-            SeqRepeat => sed_seq_repeat(_rng, _data),
-            SeqDel => sed_seq_del(_rng, _data),
-            LineDel => sed_line_del(_rng, _data),
-            LineDelSeq => sed_line_del_seq(_rng, _data),
-            LineDup => sed_line_dup(_rng, _data),
-            LineClone => sed_line_clone(_rng, _data),
-            LineRepeat => sed_line_repeat(_rng, _data),
-            LineSwap => sed_line_swap(_rng, _data),
-            LinePerm => sed_line_perm(_rng, _data),
-            LineIns => sed_line_ins(_rng, _data),
-            LineReplace => sed_line_replace(_rng, _data),
-            TreeDel => sed_tree_del(_rng, _data),
-            TreeDup => sed_tree_dup(_rng, _data),
-            TreeSwap1 => sed_tree_swap1(_rng, _data),
-            TreeSwap2 => sed_tree_swap2(_rng, _data),
-            TreeRepeat => sed_tree_stutter(_rng, _data),
-            UTF8Widen => sed_utf8_widen(_rng, _data),
-            UTF8Insert => sed_utf8_insert(_rng, _data),
-            Num => sed_num(_rng, _data),
+            AsciiBad => ascii_bad(rng, data),
+            ByteDrop => sed_byte_drop(rng, data),
+            ByteFlip => sed_byte_flip(rng, data),
+            ByteInsert => sed_byte_insert(rng, data),
+            ByteRepeat => sed_byte_repeat(rng, data),
+            BytePerm => sed_byte_perm(rng, data),
+            ByteInc => sed_byte_inc(rng, data),
+            ByteDec => sed_byte_dec(rng, data),
+            ByteRand => sed_byte_random(rng, data),
+            SeqRepeat => sed_seq_repeat(rng, data),
+            SeqDel => sed_seq_del(rng, data),
+            LineDel => sed_line_del(rng, data),
+            LineDelSeq => sed_line_del_seq(rng, data),
+            LineDup => sed_line_dup(rng, data),
+            LineClone => sed_line_clone(rng, data),
+            LineRepeat => sed_line_repeat(rng, data),
+            LineSwap => sed_line_swap(rng, data),
+            LinePerm => sed_line_perm(rng, data),
+            LineIns => sed_line_ins(rng, data),
+            LineReplace => sed_line_replace(rng, data),
+            TreeDel => sed_tree_del(rng, data),
+            TreeDup => sed_tree_dup(rng, data),
+            TreeSwap1 => sed_tree_swap1(rng, data),
+            TreeSwap2 => sed_tree_swap2(rng, data),
+            TreeRepeat => sed_tree_stutter(rng, data),
+            UTF8Widen => sed_utf8_widen(rng, data),
+            UTF8Insert => sed_utf8_insert(rng, data),
+            Num => sed_num(rng, data),
             Str => (None, 0),
             Word => (None, 0),
             Xp => (None, 0),
-            FuseThis => sed_fuse_this(_rng, _data),
-            FuseNext => sed_fuse_next(_rng, _data),
-            FuseOld => sed_fuse_old(_rng, _data),
-            Nop => nop(_rng, _data),
+            FuseThis => sed_fuse_this(rng, data),
+            FuseNext => sed_fuse_next(rng, data),
+            FuseOld => sed_fuse_old(rng, data),
+            Nop => nop(rng, data),
         }
     }
-    pub fn id_to_mutatype(_id: &str) -> Option<MutaType> {
-        MutaType::iter().find(|&muta| muta.id() == _id)
+    #[must_use]
+    pub fn id_to_mutatype(id: &str) -> Option<Self> {
+        Self::iter().find(|&muta| muta.id() == id)
     }
 }
 
+#[must_use]
 pub fn init_mutations() -> BTreeMap<MutaType, Mutator> {
     let mut map = BTreeMap::<MutaType, Mutator>::new();
     for muta in MutaType::iter() {
@@ -281,18 +285,21 @@ impl std::fmt::Debug for Mutator {
 }
 
 impl Mutator {
-    pub fn new(_muta: MutaType) -> Mutator {
-        Mutator {
-            muta: _muta,
+    #[must_use]
+    pub const fn new(muta: MutaType) -> Self {
+        Self {
+            muta,
             priority: 0,
             score: MAX_SCORE,
             weight: 0,
             delta: 0,
         }
     }
+    #[must_use]
     pub fn id(&self) -> String {
         self.muta.id()
     }
+    #[must_use]
     pub fn info(&self) -> String {
         self.muta.info()
     }
@@ -300,8 +307,8 @@ impl Mutator {
 
 #[allow(clippy::new_without_default)]
 impl Mutations {
-    pub fn new() -> Mutations {
-        Mutations {
+    pub const fn new() -> Self {
+        Self {
             mutators: BTreeMap::new(),
             mutator_nodes: Vec::new(),
             mutas: None,
@@ -315,12 +322,12 @@ impl Mutations {
     }
 
     // Activation probability is (score*priority)/SUM(total-scores)
-    pub fn randomize(&mut self, _rng: &mut dyn RngCore) {
+    pub fn randomize(&mut self, rng: &mut dyn RngCore) {
         if self.mutas.is_some() {
             // Apply random scores
             for (_, mutator) in self.mutators.iter_mut() {
                 if self.mutator_nodes.contains(&mutator.muta) {
-                    let rand_value = MAX_SCORE.rands(_rng);
+                    let rand_value = MAX_SCORE.rands(rng);
                     mutator.score = if rand_value < 2 {
                         MIN_SCORE
                     } else {
@@ -334,16 +341,16 @@ impl Mutations {
         self.mutas = Some(self.mutator_nodes.clone());
     }
 
-    fn weighted_permutation(&mut self, _rng: &mut dyn RngCore) -> Vec<&mut Mutator> {
+    fn weighted_permutation(&mut self, rng: &mut dyn RngCore) -> Vec<&mut Mutator> {
         let mut out_mutas: Vec<&mut Mutator> = vec![];
         for (_, m) in self.mutators.iter_mut() {
             if let Some(mutas) = &self.mutas {
                 if mutas.contains(&m.muta) && m.priority > 0 {
-                    m.weight = (m.priority * m.score).rands(_rng);
+                    m.weight = (m.priority * m.score).rands(rng);
                     out_mutas.push(m);
                 }
             } else if self.mutator_nodes.contains(&m.muta) && m.priority > 0 {
-                m.weight = (m.priority * m.score).rands(_rng);
+                m.weight = (m.priority * m.score).rands(rng);
                 out_mutas.push(m);
             }
         }
@@ -357,15 +364,15 @@ impl Mutations {
 
     pub fn mux_fuzzers(
         &mut self,
-        _rng: &mut dyn RngCore,
+        rng: &mut dyn RngCore,
         _data: Option<&Vec<u8>>,
     ) -> Option<Vec<u8>> {
-        let mut mutas = self.weighted_permutation(_rng);
+        let mut mutas = self.weighted_permutation(rng);
         let data = _data?;
         while !mutas.is_empty() {
             let muta = mutas.pop()?;
             debug!("muta {}", muta.id());
-            match muta.muta.mutate(_rng, Some(data)) {
+            match muta.muta.mutate(rng, Some(data)) {
                 (Some(new_data), delta) => {
                     // always remember whatever was learned
                     muta.score = adjust_priority(muta.score, delta);
@@ -386,12 +393,12 @@ impl Mutations {
 }
 
 /// This function parses mutation string i.e. ft=2,fo=2
-pub fn string_mutators(_input: &str, _mutators: &mut BTreeMap<MutaType, Mutator>) -> Vec<MutaType> {
+pub fn string_mutators(input: &str, mutators: &mut BTreeMap<MutaType, Mutator>) -> Vec<MutaType> {
     let mut applied_mutators: Vec<MutaType> = vec![];
-    let string_list = _input.trim().split(",").collect::<Vec<&str>>();
+    let string_list = input.trim().split(',').collect::<Vec<&str>>();
     //debug!("mutators {:#?}", _mutators);
     for s in string_list {
-        let tuple = s.trim().split("=").collect::<Vec<&str>>();
+        let tuple = s.trim().split('=').collect::<Vec<&str>>();
         let mutator_id = tuple.first().unwrap_or(&"").trim();
         let priority = tuple
             .get(1)
@@ -400,41 +407,41 @@ pub fn string_mutators(_input: &str, _mutators: &mut BTreeMap<MutaType, Mutator>
             .parse::<usize>()
             .unwrap_or(0);
         let muta_type = MutaType::id_to_mutatype(mutator_id).unwrap_or(MutaType::Nop);
-        if let Some(mutator) = _mutators.get_mut(&muta_type) {
+        if let Some(mutator) = mutators.get_mut(&muta_type) {
             mutator.priority = if priority < 1 { 1 } else { priority };
             mutator.score = MAX_SCORE;
             applied_mutators.push(mutator.muta);
         } else {
-            panic!("unknown mutator {}", mutator_id);
+            panic!("unknown mutator {mutator_id}");
         }
     }
     applied_mutators
 }
 
-fn rand_delta(_rng: &mut dyn RngCore) -> isize {
-    if _rng.gen() {
+fn rand_delta(rng: &mut dyn RngCore) -> isize {
+    if rng.gen() {
         1
     } else {
         -1
     }
 }
 
-fn rand_delta_up(_rng: &mut dyn RngCore) -> isize {
+fn rand_delta_up(rng: &mut dyn RngCore) -> isize {
     // slight positive bias
-    if _rng.gen_range(0..20) <= 11 {
+    if rng.gen_range(0..20) <= 11 {
         1
     } else {
         -1
     }
 }
 
-fn adjust_priority(_pri: usize, _delta: isize) -> usize {
-    match _delta {
-        0 => _pri,
+fn adjust_priority(pri: usize, delta: isize) -> usize {
+    match delta {
+        0 => pri,
         _ => {
             (std::cmp::max(
                 MIN_SCORE as isize,
-                std::cmp::max(MAX_SCORE as isize, _pri as isize + _delta),
+                std::cmp::max(MAX_SCORE as isize, pri as isize + delta),
             )) as usize
         }
     }
@@ -443,10 +450,10 @@ fn adjust_priority(_pri: usize, _delta: isize) -> usize {
 // Number Mutators
 
 // get digit
-fn get_num(_data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
+fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     let mut out = vec![];
     let mut n = i256::from(0);
-    if let Some(data) = _data {
+    if let Some(data) = data {
         for val in data.iter() {
             if char::from(*val).is_ascii_digit() {
                 out.push(*val);
@@ -475,11 +482,10 @@ fn get_num(_data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     }
     (None, None)
 }
-fn mutate_a_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (isize, Option<Vec<u8>>) {
+fn mutate_a_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (isize, Option<Vec<u8>>) {
     let mut offset = 0_usize;
     let mut nfound = 0_usize;
-    let mut _which = 0_isize;
-    if let Some(data) = _data {
+    if let Some(data) = data {
         if data.is_empty() {
             return (0, None);
         }
@@ -493,24 +499,24 @@ fn mutate_a_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (isize, Opti
             }
             offset += 1;
         }
-        _which = match nfound {
+        let which = match nfound {
             0 => return (0, None),
-            _ => nfound.rands(_rng) as isize,
+            _ => nfound.rands(rng) as isize,
         };
-        if let Some(target) = num_offsets.get(_which as usize) {
-            let new_num = mutate_num(_rng, target.0).to_string().as_bytes().to_vec();
+        if let Some(target) = num_offsets.get(which as usize) {
+            let new_num = mutate_num(rng, target.0).to_string().as_bytes().to_vec();
             let mut new_lst = data[..target.1].to_vec();
             new_lst.extend(new_num);
             new_lst.extend(&data[target.1 + target.2..]);
-            return (_which + 1, Some(new_lst));
+            return (which + 1, Some(new_lst));
         }
     }
     (0, None)
 }
 
 // -> lst, delta
-pub fn sed_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let (which, data) = mutate_a_num(_rng, _data);
+pub fn sed_num(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let (which, data) = mutate_a_num(rng, _data);
     // check if binary
     let is_bin = match data {
         Some(ref d) => is_binarish(Some(d)),
@@ -519,7 +525,7 @@ pub fn sed_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u
     if which == 0 {
         //textual with less frequent numbers
         debug!("textual with less numbers");
-        let n = 10_usize.rands(_rng);
+        let n = 10_usize.rands(rng);
         if n == 0 {
             return (data, -1);
         } else {
@@ -533,82 +539,76 @@ pub fn sed_num(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u
 
 // Byte-level Mutations
 
-pub fn sed_byte_drop(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_drop(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
+        let p = rng.gen_range(0..data.len());
         new_data.remove(p);
     }
     (Some(new_data), d)
 }
 
-pub fn sed_byte_inc(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_inc(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
+        let p = rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_add(1);
     }
     (Some(new_data), d)
 }
 
-pub fn sed_byte_dec(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_dec(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
+        let p = rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_sub(1);
     }
     (Some(new_data), d)
 }
 
-pub fn sed_byte_flip(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_flip(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let b = 1 << _rng.gen_range(0..8);
-        let p = _rng.gen_range(0..data.len());
+        let b = 1 << rng.gen_range(0..8);
+        let p = rng.gen_range(0..data.len());
         new_data[p] ^= b;
     }
     (Some(new_data), d)
 }
 
-pub fn sed_byte_insert(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_insert(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    let b = _rng.gen::<u8>();
-    let p = _rng.gen_range(0..=data.len());
+    let b = rng.gen::<u8>();
+    let p = rng.gen_range(0..=data.len());
     new_data.insert(p, b);
     (Some(new_data), d)
 }
 
-fn repeat_len(_rng: &mut dyn RngCore) -> usize {
+fn repeat_len(rng: &mut dyn RngCore) -> usize {
     let mut limit = 0b10;
-    while _rng.gen() && limit != 0x20000 {
+    while rng.gen() && limit != 0x20000 {
         limit <<= 1;
     }
-    _rng.gen_range(0..limit)
+    rng.gen_range(0..limit)
 }
 
-pub fn sed_byte_repeat(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
-    let n = repeat_len(_rng);
+pub fn sed_byte_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
+    let n = repeat_len(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
+        let p = rng.gen_range(0..data.len());
         let to_repeat = data[p];
         for _ in 0..n {
             // repeat data[p] n times
@@ -618,45 +618,42 @@ pub fn sed_byte_repeat(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_random(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_random(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let b = _rng.gen::<u8>();
-        let p = _rng.gen_range(0..data.len());
+        let b = rng.gen::<u8>();
+        let p = rng.gen_range(0..data.len());
         new_data[p] = b;
     }
     (Some(new_data), d)
 }
 
-pub fn sed_byte_perm(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_byte_perm(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
-        let n = std::cmp::min(p + _rng.gen_range(2..20), new_data.len());
-        new_data[p..n].shuffle(_rng);
+        let p = rng.gen_range(0..data.len());
+        let n = std::cmp::min(p + rng.gen_range(2..20), new_data.len());
+        new_data[p..n].shuffle(rng);
     }
     (Some(new_data), d)
 }
 
-pub fn sed_utf8_widen(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_utf8_widen(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
     if !data.is_empty() {
-        let p = _rng.gen_range(0..data.len());
+        let p = rng.gen_range(0..data.len());
         // assuming we hit a 6-bit ascii char, make it unnecessarily wide
         // which might confuse a length calculation
         let b = new_data[p];
-        if b == (b & 0b111111) {
-            new_data[p] = 0b11000000;
-            new_data.insert(p + 1, b | 0b10000000);
+        if b == (b & 0b0011_1111) {
+            new_data[p] = 0b1100_0000;
+            new_data.insert(p + 1, b | 0b1000_0000);
         }
     }
     (Some(new_data), d)
@@ -754,17 +751,12 @@ static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::n
     ret
 });
 
-pub fn sed_utf8_insert(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    let d = rand_delta(_rng);
+pub fn sed_utf8_insert(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let d = rand_delta(rng);
     let data = _data.expect("_data is not None");
     let mut new_data = data.to_vec();
-    let p = _rng.gen_range(0..=data.len());
-    let bytes = FUNNY_UNICODE
-        .choose(_rng)
-        .expect("choose() should not fail");
+    let p = rng.gen_range(0..=data.len());
+    let bytes = FUNNY_UNICODE.choose(rng).expect("choose() should not fail");
     for i in bytes.iter().rev() {
         // insert in reverse order
         new_data.insert(p, *i);
@@ -772,18 +764,18 @@ pub fn sed_utf8_insert(
     (Some(new_data), d)
 }
 
-pub fn sed_seq_repeat(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_seq_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let data = _data.expect("_data is not None");
     if data.len() >= 2 {
         let mut new_data = Vec::new();
-        let start = _rng.gen_range(0..data.len() - 1);
-        let end = _rng.gen_range(start + 1..data.len());
+        let start = rng.gen_range(0..data.len() - 1);
+        let end = rng.gen_range(start + 1..data.len());
         let pre = &data[0..start];
         let post = &data[end..data.len()];
         let stut = &data[start..end];
-        let n = 10.rand_log(_rng);
+        let n = 10.rand_log(rng);
         let n = std::cmp::max(1024, n); // max 2^10 = 1024 stuts
-        let d = rand_delta(_rng);
+        let d = rand_delta(rng);
         new_data.extend(pre);
         for _ in 0..n {
             new_data.extend(stut);
@@ -795,10 +787,10 @@ pub fn sed_seq_repeat(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     }
 }
 
-pub fn sed_seq_del(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_seq_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let data = _data.expect("_data is not None");
-    let d = rand_delta(_rng);
-    let new_data = crate::generic::list_del_seq(_rng, data.to_vec());
+    let d = rand_delta(rng);
+    let new_data = crate::generic::list_del_seq(rng, data.to_vec());
     (Some(new_data), d)
 }
 
@@ -836,120 +828,111 @@ fn try_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
     None
 }
 
-pub fn sed_line_del(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_line_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let data = _data.expect("_data is not None");
     if let Some(lines) = try_lines(Some(data)) {
-        let new_data = crate::generic::list_del(_rng, lines).concat();
+        let new_data = crate::generic::list_del(rng, lines).concat();
         return (Some(new_data), 1);
     }
     (Some(data.to_vec()), -1)
 }
 
-pub fn sed_line_del_seq(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_del_seq(_rng, lines);
+pub fn sed_line_del_seq(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_del_seq(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
 
-pub fn sed_line_dup(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_dup(_rng, lines);
+pub fn sed_line_dup(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_dup(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
 
-pub fn sed_line_clone(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_clone(_rng, lines);
+pub fn sed_line_clone(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_clone(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
 
-pub fn sed_line_swap(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_swap(_rng, lines);
+pub fn sed_line_swap(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_swap(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
 
-pub fn sed_line_perm(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_line_perm(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     debug!("sed_line_perm");
     let data = _data.expect("_data is not None");
     if let Some(lines) = try_lines(Some(data)) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_perm(_rng, lines);
-        debug!("new_lines {:?}", new_lines);
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_perm(rng, lines);
+        debug!("new_lines {new_lines:?}");
         return (Some(new_lines.concat()), 1);
     }
     (Some(data.to_vec()), -1)
 }
 
-pub fn sed_line_repeat(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_repeat(_rng, lines);
+pub fn sed_line_repeat(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_repeat(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
-pub fn sed_line_ins(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_ins(_rng, lines);
-        return (Some(new_lines.concat()), 1);
-    }
-    (None, -1)
-}
-
-pub fn sed_line_replace(
-    _rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    if let Some(lines) = try_lines(_data) {
-        let new_lines: Vec<Vec<u8>> = crate::generic::list_replace(_rng, lines);
+pub fn sed_line_ins(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_ins(rng, lines);
         return (Some(new_lines.concat()), 1);
     }
     (None, -1)
 }
 
-pub fn sed_fuse_this(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
-        let new_data = crate::generic::list_fuse(_rng, data, data);
-        let d = rand_delta_up(_rng);
+pub fn sed_line_replace(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(lines) = try_lines(data) {
+        let new_lines: Vec<Vec<u8>> = crate::generic::list_replace(rng, lines);
+        return (Some(new_lines.concat()), 1);
+    }
+    (None, -1)
+}
+
+pub fn sed_fuse_this(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
+        let new_data = crate::generic::list_fuse(rng, data, data);
+        let d = rand_delta_up(rng);
         return (Some(new_data), d);
     }
     (None, 0)
 }
 
-pub fn sed_fuse_next(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_fuse_next(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
         //split
         let (al1, al2) = data.split_at(data.len() / 2);
-        let abl = crate::generic::list_fuse(_rng, &al1.to_vec(), data);
-        let abal = crate::generic::list_fuse(_rng, &abl, &al2.to_vec());
-        let d = rand_delta_up(_rng);
+        let abl = crate::generic::list_fuse(rng, &al1.to_vec(), data);
+        let abal = crate::generic::list_fuse(rng, &abl, &al2.to_vec());
+        let d = rand_delta_up(rng);
         return (Some(abal), d);
     }
     (None, 0)
 }
 
 // Not a 1-1 with radamsa sed-fuse-old
-pub fn sed_fuse_old(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_fuse_old(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         //split
         let (al1, al2) = data.split_at(data.len() / 2);
-        let mut a = crate::generic::list_fuse(_rng, &al1.to_vec(), &al2.to_vec());
-        let mut b = crate::generic::list_fuse(_rng, &al1.to_vec(), &al2.to_vec());
+        let mut a = crate::generic::list_fuse(rng, &al1.to_vec(), &al2.to_vec());
+        let mut b = crate::generic::list_fuse(rng, &al1.to_vec(), &al2.to_vec());
         a.append(&mut b);
-        let d = rand_delta_up(_rng);
+        let d = rand_delta_up(rng);
         return (Some(a), d);
     }
     (None, 0)
@@ -957,9 +940,9 @@ pub fn sed_fuse_old(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
 
 // Tree mutations
 
-pub fn sed_tree_del(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_tree_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
-        let new_data = crate::split::sed_tree_op(_rng, data, crate::split::TreeMutate::TreeDel);
+        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDel);
         if new_data.is_some() {
             return (new_data, 1);
         } else {
@@ -969,9 +952,9 @@ pub fn sed_tree_del(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     (None, 0)
 }
 
-pub fn sed_tree_dup(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_tree_dup(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
-        let new_data = crate::split::sed_tree_op(_rng, data, crate::split::TreeMutate::TreeDup);
+        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDup);
         if new_data.is_some() {
             return (new_data, 1);
         } else {
@@ -982,11 +965,11 @@ pub fn sed_tree_dup(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
 }
 
 pub fn sed_tree_stutter(
-    _rng: &mut dyn RngCore,
+    rng: &mut dyn RngCore,
     _data: Option<&Vec<u8>>,
 ) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
-        let new_data = crate::split::sed_tree_op(_rng, data, crate::split::TreeMutate::TreeStutter);
+        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeStutter);
         if new_data.is_some() {
             return (new_data, 1);
         } else {
@@ -996,10 +979,10 @@ pub fn sed_tree_stutter(
     (None, 0)
 }
 
-pub fn sed_tree_swap1(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_tree_swap1(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
         let new_data =
-            crate::split::sed_tree_op(_rng, data, crate::split::TreeMutate::TreeSwapReplace);
+            crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapReplace);
         if new_data.is_some() {
             return (new_data, 1);
         } else {
@@ -1009,10 +992,9 @@ pub fn sed_tree_swap1(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     (None, 0)
 }
 
-pub fn sed_tree_swap2(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_tree_swap2(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
-        let new_data =
-            crate::split::sed_tree_op(_rng, data, crate::split::TreeMutate::TreeSwapPair);
+        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapPair);
         if new_data.is_some() {
             return (new_data, 1);
         } else {
@@ -1024,12 +1006,12 @@ pub fn sed_tree_swap2(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
 
 mod ascii;
 
-pub fn ascii_bad(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn ascii_bad(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = _data {
         match ascii::Ascii::parse(data) {
             Ok(mut cs) => {
-                cs.mutate(_rng);
-                return (Some(cs.unlex()), rand_delta_up(_rng));
+                cs.mutate(rng);
+                return (Some(cs.unlex()), rand_delta_up(rng));
             }
             Err(_) => {
                 return (Some(data.clone()), -1);
@@ -1068,11 +1050,11 @@ mod tests {
     #[test]
     fn test_mutate_a_num() {
         let num_1 = Box::from(vec![51, 50, 49, 32, 51, 10]); // 321
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (_which, data1) = mutate_a_num(&mut rng, Some(&num_1));
         let d1 = data1.as_ref().unwrap();
         assert_eq!(std::str::from_utf8(d1), Ok("321 1487970283344404796\n"));
-        let mut rng2 = ChaCha20Rng::seed_from_u64(1674713110);
+        let mut rng2 = ChaCha20Rng::seed_from_u64(1_674_713_110);
         let (_which, data2) = mutate_a_num(&mut rng2, Some(&num_1));
         let d2 = data2.as_ref().unwrap();
         assert_eq!(
@@ -1080,7 +1062,7 @@ mod tests {
             Ok("170141183460469231731687303715884105729 3\n")
         );
         let num_2: Vec<u8> = "1 2 3 4 5 6 7\n".as_bytes().to_vec();
-        let mut rng3 = ChaCha20Rng::seed_from_u64(1674713145);
+        let mut rng3 = ChaCha20Rng::seed_from_u64(1_674_713_145);
         let (_which, data3) = mutate_a_num(&mut rng3, Some(&num_2));
         let d3 = data3.as_ref().unwrap();
         assert_eq!(std::str::from_utf8(d3), Ok("1 2 3 4 -1 6 7\n"));
@@ -1089,7 +1071,7 @@ mod tests {
     fn test_sed_num() {
         let num_1 = Vec::from("1 2 3 4 5 6 7 8 9 10 11 12\n".as_bytes()); // not-binary
         let num_2 = vec![255, 32, 129, 50, 49, 32, 51, 10]; // binary
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (_data, delta) = sed_num(&mut rng, Some(&num_1));
         assert_eq!(delta, 2);
         let (_data, delta) = sed_num(&mut rng, Some(&num_2));
@@ -1099,7 +1081,7 @@ mod tests {
     #[test]
     fn test_sed_byte_drop() {
         let data = Vec::from("ABCDEFG".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_drop(&mut rng, Some(&data));
         assert_eq!(
             data.len(),
@@ -1119,7 +1101,7 @@ mod tests {
     #[test]
     fn test_sed_byte_inc() {
         let data = Vec::from("ABCDEFG".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_inc(&mut rng, Some(&data));
         assert_eq!(
             data.len(),
@@ -1146,7 +1128,7 @@ mod tests {
     #[test]
     fn test_sed_byte_dec() {
         let data = Vec::from("ABCDEFG".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_dec(&mut rng, Some(&data));
         assert_eq!(
             data.len(),
@@ -1173,7 +1155,7 @@ mod tests {
     #[test]
     fn test_sed_byte_flip() {
         let data = Vec::from("ABCDEFG".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_flip(&mut rng, Some(&data));
         assert_eq!(
             data.len(),
@@ -1201,7 +1183,7 @@ mod tests {
     #[test]
     fn test_sed_byte_insert() {
         let data = Vec::from("ABCDEFG".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_insert(&mut rng, Some(&data));
         assert_eq!(
             data.len() + 1,
@@ -1210,7 +1192,7 @@ mod tests {
         );
 
         let data = Vec::from("".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_insert(&mut rng, Some(&data));
         assert_eq!(
             data2.expect("data2 is not None").len(),
@@ -1222,7 +1204,7 @@ mod tests {
     #[test]
     fn test_sed_byte_repeat() {
         let data = Vec::from("AAAAAAAA".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_repeat(&mut rng, Some(&data));
         assert!(
             data2.expect("data2 is not None").len() > data.len(),
@@ -1233,7 +1215,7 @@ mod tests {
     #[test]
     fn test_sed_byte_random() {
         let data = Vec::from("AAAAAAAA".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_random(&mut rng, Some(&data));
         assert_eq!(
             data.len(),
@@ -1245,7 +1227,7 @@ mod tests {
     #[test]
     fn test_sed_byte_perm() {
         let data1 = Vec::from("ABCDEFGHI".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_perm(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
             panic!("data2 is not None");
@@ -1263,20 +1245,20 @@ mod tests {
     #[test]
     fn test_sed_utf8_widen() {
         let data1 = Vec::from("1".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_utf8_widen(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
             panic!("data2 is not None");
         };
         assert_eq!(data2.len(), 2, "utf8_widen widened a character");
-        assert_eq!(data2[0], 0b11000000);
-        assert_eq!(data2[1], data1[0] | 0b10000000);
+        assert_eq!(data2[0], 0b1100_0000);
+        assert_eq!(data2[1], data1[0] | 0b1000_0000);
     }
 
     #[test]
     fn test_sed_utf8_insert() {
         let data1 = Vec::from("".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_utf8_insert(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
             panic!("data2 is not None");
@@ -1293,7 +1275,7 @@ mod tests {
     #[test]
     fn test_sed_seq_repeat() {
         let data1 = Vec::from("ABCDEFGHIJ".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_seq_repeat(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
             panic!("data2 is not None");
@@ -1307,7 +1289,7 @@ mod tests {
     #[test]
     fn test_sed_seq_del() {
         let data1 = Vec::from("ABCDEFGHIJ".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_seq_del(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
             panic!("data2 is not None");
@@ -1329,7 +1311,7 @@ mod tests {
         data2.insert(5, 0xFE);
         data2.insert(6, 0xFE);
         data2.insert(7, 0xFE);
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (_l, delta) = sed_line_del(&mut rng, Some(&data1));
         assert_eq!(1, delta);
         //debug!("{:?}", l);

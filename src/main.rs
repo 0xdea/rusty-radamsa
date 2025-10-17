@@ -114,7 +114,7 @@ fn match_lists(cmd: &Commands) {
                 );
                 let mutations = rusty_radamsa::generators::init_generators();
                 mutations.iter().for_each(|x| {
-                    println!("    {0: <6} {1: <10}", x.gen_type.id(), x.gen_type.info())
+                    println!("    {0: <6} {1: <10}", x.gen_type.id(), x.gen_type.info());
                 });
                 println!("---");
             }
@@ -127,7 +127,7 @@ fn match_lists(cmd: &Commands) {
                         "    {0: <6} {1: <10}",
                         x.pattern_type.id(),
                         x.pattern_type.info()
-                    )
+                    );
                 });
                 println!("---");
             }
