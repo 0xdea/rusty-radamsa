@@ -369,9 +369,9 @@ pub(crate) fn _debug_escaped(input: &Vec<Vec<u8>>) {
 
 pub fn get_files(_files: Vec<String>) -> Result<Vec<String>, GlobError<'static>> {
     let mut all_paths: Vec<String> = vec![];
+    let is_ip = Regex::new(r"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)").unwrap();
     for f in _files {
         debug!("{}", f);
-        let is_ip = Regex::new(r"([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)").unwrap();
         if is_ip.is_match(&f) {
             debug!("is address");
             all_paths.push(f);
