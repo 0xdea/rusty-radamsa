@@ -25,34 +25,34 @@ static SILLY_STRINGS: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::n
     ret.into_iter().map(|x| x.as_bytes().to_owned()).collect()
 });
 
-fn random_badness(_rng: &mut dyn RngCore) -> Vec<u8> {
+fn random_badness(rng: &mut dyn RngCore) -> Vec<u8> {
     // concatenate between 1 and 20 random silly strings
     let mut v = Vec::new();
-    for _ in 0.._rng.gen_range(1..20) {
-        v.extend(SILLY_STRINGS.choose(_rng).unwrap());
+    for _ in 0..rng.gen_range(1..20) {
+        v.extend(SILLY_STRINGS.choose(rng).unwrap());
     }
     v
 }
 
-fn mutate_text_data(_rng: &mut dyn RngCore, data: &mut Vec<u8>) {
-    let idx = _rng.gen_range(0..=data.len());
-    match _rng.gen_range(0..=2) {
+fn mutate_text_data(rng: &mut dyn RngCore, data: &mut Vec<u8>) {
+    let idx = rng.gen_range(0..=data.len());
+    match rng.gen_range(0..=2) {
         0 => {
             // insert badness
-            let badness = random_badness(_rng);
+            let badness = random_badness(rng);
             for (i, d) in badness.into_iter().enumerate() {
                 data.insert(idx + i, d);
             }
         }
         1 => {
             // replace badness
-            let badness = random_badness(_rng);
+            let badness = random_badness(rng);
             data.truncate(idx);
             data.extend(&badness);
         }
         2 => {
             // push random number of newline characters
-            let num_as = match _rng.gen_range(0..=10) {
+            let num_as = match rng.gen_range(0..=10) {
                 0 => 127,
                 1 => 128,
                 2 => 255,
@@ -63,7 +63,7 @@ fn mutate_text_data(_rng: &mut dyn RngCore, data: &mut Vec<u8>) {
                 7 => 32768,
                 8 => 65535,
                 9 => 65536,
-                _ => _rng.gen_range(0..1024),
+                _ => rng.gen_range(0..1024),
             };
             for i in 0..num_as {
                 data.insert(idx + i, 0xa);
@@ -132,7 +132,7 @@ mod quoted_string {
     fn nested() {
         let parse = parse_quoted_string('"')(br#""'AAA'""#).unwrap().1;
         assert_eq!(parse.delimitor, 0x22);
-        assert_eq!(parse.data, br#"'AAA'"#);
+        assert_eq!(parse.data, br"'AAA'");
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod quoted_string {
     fn empty() {
         let parse = parse_quoted_string('"')(br#""""#).unwrap().1;
         assert_eq!(parse.delimitor, 0x22);
-        assert_eq!(parse.data, br#""#);
+        assert_eq!(parse.data, br"");
     }
 }
 
@@ -161,17 +161,17 @@ impl Text {
         Self::Texty(s.to_owned())
     }
 
-    fn mutate(&mut self, _rng: &mut dyn RngCore) {
+    fn mutate(&mut self, rng: &mut dyn RngCore) {
         match self {
-            Self::Texty(d) => mutate_text_data(_rng, d),
-            Self::Delim(d) => mutate_text_data(_rng, &mut d.data),
+            Self::Texty(d) => mutate_text_data(rng, d),
+            Self::Delim(d) => mutate_text_data(rng, &mut d.data),
         }
     }
 
     fn unlex(self, v: &mut Vec<u8>) {
         match self {
-            Text::Texty(a) => v.extend(a),
-            Text::Delim(delim) => delim.unlex(v),
+            Self::Texty(a) => v.extend(a),
+            Self::Delim(delim) => delim.unlex(v),
         }
     }
 }
@@ -219,17 +219,17 @@ enum Data {
 impl Data {
     fn unlex(self, v: &mut Vec<u8>) {
         match self {
-            Data::Texty(a) => {
+            Self::Texty(a) => {
                 for i in a.into_iter() {
                     i.unlex(v);
                 }
             }
-            Data::Bytes(a) => v.extend(a),
+            Self::Bytes(a) => v.extend(a),
         }
     }
 }
 
-fn is_texty(x: u8) -> bool {
+const fn is_texty(x: u8) -> bool {
     matches!(x, 9 | 10 | 13 | 32..=126)
 }
 
@@ -290,11 +290,11 @@ impl Ascii {
         }
     }
 
-    pub(crate) fn mutate(&mut self, _rng: &mut dyn RngCore) {
+    pub(crate) fn mutate(&mut self, rng: &mut dyn RngCore) {
         loop {
             // find a mutatable chunk, ignoring non-ascii data
-            if let Data::Texty(ref mut dat) = self.0.choose_mut(_rng).unwrap() {
-                dat.choose_mut(_rng).unwrap().mutate(_rng);
+            if let Data::Texty(ref mut dat) = self.0.choose_mut(rng).unwrap() {
+                dat.choose_mut(rng).unwrap().mutate(rng);
                 break;
             }
         }
@@ -362,7 +362,7 @@ mod ascii_bad {
 
     #[test]
     fn lex_roundtrip_smoke_test() {
-        let mut rng = ChaCha20Rng::seed_from_u64(1683310580);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_683_310_580);
         let mut data = vec![0u8; 1000];
         for _ in 0..1000 {
             // generate random buffer
