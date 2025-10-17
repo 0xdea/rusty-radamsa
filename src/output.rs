@@ -16,6 +16,7 @@ use crate::shared::*;
 
 pub const DEFAULT_OUTPUTS: &str = "-";
 
+#[must_use]
 pub fn init_outputs() -> Vec<Output> {
     Vec::from([
         Output::new("-","Write output data to Stdout", OutputType::Stdout),
@@ -39,8 +40,9 @@ pub struct Outputs {
 
 #[allow(clippy::new_without_default)]
 impl Outputs {
-    pub fn new() -> Outputs {
-        Outputs {
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
             outputs: Vec::new(),
             truncate: 0,
             resize: false,
@@ -54,7 +56,7 @@ impl Outputs {
     }
     pub fn init_pipes(
         &mut self,
-        _buffer: &Option<&mut Box<[u8]>>,
+        buffer: &Option<&mut Box<[u8]>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut new_outputs: Vec<Output> = vec![];
         for output in &self.outputs {
@@ -74,7 +76,7 @@ impl Outputs {
                 }
             } else {
                 let mut new_output = output.clone();
-                if new_output.set_fd(None, _buffer).is_ok() {
+                if new_output.set_fd(None, buffer).is_ok() {
                     new_outputs.push(new_output);
                 }
             }
@@ -85,7 +87,7 @@ impl Outputs {
     pub fn mux_output(
         &mut self,
         _data: &Vec<u8>,
-        _buffer: &mut Option<&mut Box<[u8]>>,
+        buffer: &mut Option<&mut Box<[u8]>>,
     ) -> Result<usize, Box<dyn std::error::Error>> {
         debug!("mux output");
         let data: Vec<u8> = match self.truncate {
@@ -102,7 +104,7 @@ impl Outputs {
             debug!("writing to {}", output.id);
             output.write(&data)?;
             if output.fd_type == OutputType::Buffer {
-                if let Some(ref mut buf) = _buffer.as_mut() {
+                if let Some(ref mut buf) = buffer.as_mut() {
                     if self.resize {
                         let resize_len = match self.truncate {
                             0 => data.len(),
@@ -142,8 +144,8 @@ pub struct Output {
 }
 
 impl Clone for Output {
-    fn clone(&self) -> Output {
-        Output {
+    fn clone(&self) -> Self {
+        Self {
             id: self.id.clone(),
             desc: self.desc.clone(),
             fd_type: self.fd_type,
@@ -165,10 +167,11 @@ impl std::fmt::Debug for Output {
 }
 
 impl Output {
-    pub fn new(_id: &str, _desc: &str, _type: OutputType) -> Output {
-        Output {
-            id: _id.to_string(),
-            desc: _desc.to_string(),
+    #[must_use]
+    pub fn new(id: &str, desc: &str, _type: OutputType) -> Self {
+        Self {
+            id: id.to_string(),
+            desc: desc.to_string(),
             fd_type: _type,
             fd: None,
             paths: None,
@@ -176,17 +179,17 @@ impl Output {
     }
     pub fn set_fd(
         &mut self,
-        _path: Option<String>,
-        _buf: &Option<&mut Box<[u8]>>,
+        path: Option<String>,
+        buf: &Option<&mut Box<[u8]>>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // initialize the fd
-        let fd = get_fd(&self.fd_type, _path, _buf)?;
+        let fd = get_fd(&self.fd_type, path, buf)?;
         self.fd = Some(fd);
         Ok(())
     }
-    pub fn write(&mut self, _data: &[u8]) -> Result<usize, Box<dyn std::error::Error>> {
+    pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn std::error::Error>> {
         match self.fd {
-            Some(ref mut fd) => fd.gen_write(_data, 0),
+            Some(ref mut fd) => fd.gen_write(data, 0),
             None => {
                 error!("fd failed for {}", self.id);
                 Ok(0)
@@ -202,10 +205,10 @@ impl Output {
             }
         }
     }
-    pub fn write_all(&mut self, _data: &Vec<Vec<u8>>) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn write_all(&mut self, data: &Vec<Vec<u8>>) -> Result<(), Box<dyn std::error::Error>> {
         match self.fd {
             Some(ref mut fd) => {
-                for d in _data {
+                for d in data {
                     fd.gen_write(d, 0)?;
                 }
             }
@@ -230,19 +233,19 @@ pub enum OutputType {
     Template,
 }
 
-pub fn string_outputs(_input: Vec<&str>, _outputs: &mut [Output]) -> Vec<Output> {
+pub fn string_outputs(input: Vec<&str>, outputs: &mut [Output]) -> Vec<Output> {
     debug!("string_outputs");
     let mut applied_outputs: Vec<Output> = vec![];
-    if _input.is_empty() {
+    if input.is_empty() {
         return vec![];
     }
-    debug!("_input {:?}", _input);
-    let mut iter = _input.iter().peekable();
-    debug!("_outputs {:?}", iter);
+    debug!("_input {input:?}");
+    let mut iter = input.iter().peekable();
+    debug!("_outputs {iter:?}",);
     while let Some(next) = iter.next() {
-        debug!("o {:?}", next);
-        if let Some(o) = _outputs.iter().find(|&x| x.id.eq(next)) {
-            debug!("o {:?}", o);
+        debug!("o {next:?}");
+        if let Some(o) = outputs.iter().find(|&x| x.id.eq(next)) {
+            debug!("o {o:?}");
             match o.fd_type {
                 OutputType::Buffer | OutputType::Stdout => {
                     applied_outputs.push(o.clone());
@@ -253,7 +256,7 @@ pub fn string_outputs(_input: Vec<&str>, _outputs: &mut [Output]) -> Vec<Output>
                     while let Some(path) = iter.next() {
                         paths.push(path.to_string());
                         if let Some(peek) = iter.peek() {
-                            if _outputs.iter().any(|x| x.id.eq(*peek)) {
+                            if outputs.iter().any(|x| x.id.eq(*peek)) {
                                 break;
                             }
                         }
@@ -265,24 +268,24 @@ pub fn string_outputs(_input: Vec<&str>, _outputs: &mut [Output]) -> Vec<Output>
             }
         }
     }
-    debug!("applied_outputs {:?}", applied_outputs);
+    debug!("applied_outputs {applied_outputs:?}");
     applied_outputs
 }
 
 pub fn get_fd(
     _type: &OutputType,
-    _path: Option<String>,
-    _buf: &Option<&mut Box<[u8]>>,
+    path: Option<String>,
+    buf: &Option<&mut Box<[u8]>>,
 ) -> Result<Box<dyn GenericReader>, Box<dyn std::error::Error>> {
     match *_type {
         OutputType::Stdout => Ok(Box::new(io::Stdout::gen_open("w", None, None)?)),
-        OutputType::File => Ok(Box::new(File::gen_open("w", _path, None)?)),
-        OutputType::TCPServer => Ok(Box::new(TcpStream::gen_open("w", _path, None)?)),
-        OutputType::TCPClient => Ok(Box::new(TcpStream::gen_open("w", _path, None)?)),
-        OutputType::UDPServer => Ok(Box::new(UdpSocket::gen_open("w", _path, None)?)),
-        OutputType::UDPClient => Ok(Box::new(UdpSocket::gen_open("w", _path, None)?)),
+        OutputType::File => Ok(Box::new(File::gen_open("w", path, None)?)),
+        OutputType::TCPServer => Ok(Box::new(TcpStream::gen_open("w", path, None)?)),
+        OutputType::TCPClient => Ok(Box::new(TcpStream::gen_open("w", path, None)?)),
+        OutputType::UDPServer => Ok(Box::new(UdpSocket::gen_open("w", path, None)?)),
+        OutputType::UDPClient => Ok(Box::new(UdpSocket::gen_open("w", path, None)?)),
         OutputType::Buffer => {
-            if let Some(ref buf) = _buf {
+            if let Some(ref buf) = buf {
                 let b: Box<[u8]> = (**buf).to_owned();
                 Ok(Box::new(Cursor::<Box<[u8]>>::gen_open("w", None, Some(b))?))
             } else {
