@@ -30,20 +30,20 @@ struct Node {
 }
 
 impl Node {
-    fn new(_start: usize, _delim: (u8, u8)) -> Self {
-        Node {
+    fn new(start: usize, delim: (u8, u8)) -> Self {
+        Self {
             id: ProcessUniqueId::new(),
             level: 0,
-            delim: _delim,
-            start_index: _start,
-            end_index: _start,
+            delim,
+            start_index: start,
+            end_index: start,
             parent_id: None,
             children: Vec::new(),
             needs_separator: false,
         }
     }
 
-    fn add_child(&mut self, child: Node) {
+    fn add_child(&mut self, child: Self) {
         let mut c = child;
         if self.level < MAX_LEVELS {
             c.parent_id = Some(self.id);
@@ -52,7 +52,7 @@ impl Node {
             debug!("Max levels reached");
         }
     }
-    fn set_end_index(&mut self, end: usize) {
+    const fn set_end_index(&mut self, end: usize) {
         self.end_index = end;
     }
     fn get_mut(&mut self, node_id: ProcessUniqueId) -> Option<&mut Node> {
@@ -70,8 +70,8 @@ impl Node {
         None
     }
 
-    fn copy(&self) -> Node {
-        Node {
+    fn copy(&self) -> Self {
+        Self {
             id: self.id,
             level: self.level,
             delim: self.delim,
@@ -92,8 +92,8 @@ fn check_delim_close(byte: &u8) -> Option<(u8, u8)> {
     USUAL_DELIMS.into_iter().find(|&delim| delim.1 == *byte)
 }
 
-fn check_node(node: &Node, _delim: Option<(u8, u8)>, index: usize) -> bool {
-    if let Some(delim) = _delim {
+const fn check_node(node: &Node, delim: Option<(u8, u8)>, index: usize) -> bool {
+    if let Some(delim) = delim {
         if node.delim.0 == delim.0 && index != node.start_index {
             return true;
         }
@@ -144,20 +144,20 @@ fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
     Some(root_node)
 }
 
-fn partial_parse(_data: &Vec<u8>) -> Option<Node> {
-    if is_binarish(Some(_data)) {
+fn partial_parse(data: &Vec<u8>) -> Option<Node> {
+    if is_binarish(Some(data)) {
         None
     } else {
-        build_binary_tree(_data)
+        build_binary_tree(data)
     }
 }
-fn sublist(_node: &Node) -> Vec<ProcessUniqueId> {
+fn sublist(node: &Node) -> Vec<ProcessUniqueId> {
     let mut id_list: Vec<ProcessUniqueId> = Vec::new();
     // ignore root node and empty pairs
-    if _node.start_index != _node.end_index && _node.delim != (0, 0) {
-        id_list.push(_node.id);
+    if node.start_index != node.end_index && node.delim != (0, 0) {
+        id_list.push(node.id);
     }
-    for child in &_node.children {
+    for child in &node.children {
         let mut new_ids = sublist(child);
         id_list.append(&mut new_ids);
     }
@@ -173,48 +173,48 @@ pub enum TreeMutate {
     TreeSwapPair,    // ts2 - swap 2 nodes
 }
 
-fn pick_sublist<'a>(_rng: &mut dyn RngCore, _tree: &'a mut Node) -> Option<&'a mut Node> {
+fn pick_sublist<'a>(rng: &mut dyn RngCore, tree: &'a mut Node) -> Option<&'a mut Node> {
     let mut id_list: Vec<ProcessUniqueId> = Vec::new();
-    let mut new_ids = sublist(_tree);
+    let mut new_ids = sublist(tree);
     id_list.append(&mut new_ids);
 
     if id_list.is_empty() {
         return None;
     }
-    let node_id = rand_elem(_rng, &id_list)?;
-    _tree.get_mut(*node_id)
+    let node_id = rand_elem(rng, &id_list)?;
+    tree.get_mut(*node_id)
 }
 
-fn _print_binary_tree(_node: &Node, level: usize) {
-    if _node.start_index != _node.end_index && _node.delim != (0, 0) {
+fn _print_binary_tree(node: &Node, level: usize) {
+    if node.start_index != node.end_index && node.delim != (0, 0) {
         debug!(
             "{} {} {} {} {}",
             " ".repeat(level),
-            _node.delim.0 as char,
-            _node.level,
-            _node.start_index,
-            _node.needs_separator
+            node.delim.0 as char,
+            node.level,
+            node.start_index,
+            node.needs_separator
         );
     }
     let new_level = level + 1;
-    for child in &_node.children {
+    for child in &node.children {
         _print_binary_tree(child, new_level);
     }
-    if _node.end_index != _node.start_index && _node.delim != (0, 0) {
+    if node.end_index != node.start_index && node.delim != (0, 0) {
         debug!(
             "{} {} {} {}",
             " ".repeat(level),
-            _node.delim.1 as char,
-            _node.level,
-            _node.end_index
+            node.delim.1 as char,
+            node.level,
+            node.end_index
         );
     }
 }
 
 // check for comma separator
-fn check_separator(_start_index: usize, _data: &[u8]) -> bool {
-    let prev_index = _start_index - 1;
-    if let Some(prev_byte) = _data.get(prev_index) {
+fn check_separator(start_index: usize, data: &[u8]) -> bool {
+    let prev_index = start_index - 1;
+    if let Some(prev_byte) = data.get(prev_index) {
         if *prev_byte == COMMA {
             return true;
         }
@@ -222,51 +222,51 @@ fn check_separator(_start_index: usize, _data: &[u8]) -> bool {
     false
 }
 
-fn tree_to_vec(_tree: &Node, _data: &Vec<u8>) -> Option<Vec<u8>> {
+fn tree_to_vec(tree: &Node, data: &Vec<u8>) -> Option<Vec<u8>> {
     let mut new_data = Vec::new();
-    let mut og_data = _data[_tree.start_index.._tree.end_index].to_vec();
-    if _tree.children.is_empty() {
+    let mut og_data = data[tree.start_index..tree.end_index].to_vec();
+    if tree.children.is_empty() {
         new_data.append(&mut og_data);
     } else {
-        if _tree.needs_separator {
+        if tree.needs_separator {
             new_data.push(COMMA);
         }
-        if _tree.delim != (0, 0) && _tree.delim.0 != 0 {
-            new_data.push(_tree.delim.0);
+        if tree.delim != (0, 0) && tree.delim.0 != 0 {
+            new_data.push(tree.delim.0);
         }
-        for child in &_tree.children {
-            if let Some(mut child_data) = tree_to_vec(child, _data) {
+        for child in &tree.children {
+            if let Some(mut child_data) = tree_to_vec(child, data) {
                 new_data.append(&mut child_data);
             }
         }
-        if _tree.delim != (0, 0) && _tree.delim.1 != 0 {
-            new_data.push(_tree.delim.1);
+        if tree.delim != (0, 0) && tree.delim.1 != 0 {
+            new_data.push(tree.delim.1);
         }
     }
     Some(new_data)
 }
 
-fn repeat_path(_parent_node: &mut Node, _child_index: usize, _n_rep: usize) {
-    let parent_copy = _parent_node.copy();
-    if 0 < _n_rep {
-        let node = _parent_node.children.get_mut(_child_index).unwrap();
+fn repeat_path(parent_node: &mut Node, child_index: usize, n_rep: usize) {
+    let parent_copy = parent_node.copy();
+    if 0 < n_rep {
+        let node = parent_node.children.get_mut(child_index).unwrap();
         *node = parent_copy;
-        repeat_path(node, _child_index, _n_rep - 1);
+        repeat_path(node, child_index, n_rep - 1);
     }
 }
 
 pub(crate) fn sed_tree_op(
-    _rng: &mut dyn RngCore,
-    _data: &Vec<u8>,
-    _mutate_type: TreeMutate,
+    rng: &mut dyn RngCore,
+    data: &Vec<u8>,
+    mutate_type: TreeMutate,
 ) -> Option<Vec<u8>> {
     // parse data to tree if not binaryish
-    let mut tree = partial_parse(_data)?;
+    let mut tree = partial_parse(data)?;
 
-    match _mutate_type {
+    match mutate_type {
         TreeMutate::TreeDup => {
             // add duplicate node to parent
-            let mut node = pick_sublist(_rng, &mut tree)?.clone();
+            let mut node = pick_sublist(rng, &mut tree)?.clone();
             let parent_id = node.parent_id?;
             let parent_node = tree.get_mut(parent_id)?;
             // get index of child
@@ -275,7 +275,7 @@ pub(crate) fn sed_tree_op(
                 .iter()
                 .position(|r| r.id == node.id)
                 .unwrap();
-            node.needs_separator = check_separator(node.start_index, _data);
+            node.needs_separator = check_separator(node.start_index, data);
             node.id = ProcessUniqueId::new();
             for child in &mut node.children {
                 child.parent_id = Some(node.id);
@@ -283,7 +283,7 @@ pub(crate) fn sed_tree_op(
             parent_node.children.insert(index + 1, node);
         }
         TreeMutate::TreeDel => {
-            let node = pick_sublist(_rng, &mut tree)?.clone();
+            let node = pick_sublist(rng, &mut tree)?.clone();
             let parent_id = node.parent_id?;
             let parent_node = tree.get_mut(parent_id)?;
             // get index of child
@@ -295,8 +295,8 @@ pub(crate) fn sed_tree_op(
             parent_node.children.remove(index);
         }
         TreeMutate::TreeStutter => {
-            let n_reps = 10.rand_log(_rng);
-            let node = pick_sublist(_rng, &mut tree)?.clone();
+            let n_reps = 10.rand_log(rng);
+            let node = pick_sublist(rng, &mut tree)?.clone();
             let parent_id = node.parent_id?;
             let parent_node = tree.get_mut(parent_id)?;
             let index = parent_node
@@ -313,11 +313,11 @@ pub(crate) fn sed_tree_op(
                 return None;
             }
             // permute
-            node_list.shuffle(_rng);
+            node_list.shuffle(rng);
             let toswap_id = node_list.first()?;
             // safe to unwrap here because the id exists.
             let toswap_node = tree.get_mut(*toswap_id)?.clone();
-            let node = pick_sublist(_rng, &mut tree)?;
+            let node = pick_sublist(rng, &mut tree)?;
             *node = toswap_node;
         }
         TreeMutate::TreeSwapPair => {
@@ -326,18 +326,18 @@ pub(crate) fn sed_tree_op(
                 return None;
             }
             // permute
-            node_list.shuffle(_rng);
+            node_list.shuffle(rng);
             let toswap_id = node_list.first()?;
             // safe to unwrap here because the id exists.
             let toswap_node = tree.get_mut(*toswap_id)?.clone();
-            let node = pick_sublist(_rng, &mut tree)?;
+            let node = pick_sublist(rng, &mut tree)?;
             let old_node = node.clone();
             *node = toswap_node;
             let toswap_og = tree.get_mut(*toswap_id)?;
             *toswap_og = old_node;
         }
     }
-    let new_data = tree_to_vec(&tree, _data)?;
+    let new_data = tree_to_vec(&tree, data)?;
     Some(new_data)
 }
 
@@ -401,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_tree_stutter() {
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         // json
         let expected = r#"[{"some": "json"},{"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": "some text here"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]"#.as_bytes().to_vec();
         let data1 = Vec::from("[{\"some\": \"json\"},{\"some\": \"some text here\"}]".as_bytes());
@@ -412,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_tree_empty() {
-        let mut rng = ChaCha20Rng::seed_from_u64(1674713045);
+        let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let data1: Vec<u8> = vec![];
         let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeStutter);
         assert_eq!(None, new_data);

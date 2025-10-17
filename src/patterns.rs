@@ -69,8 +69,8 @@ pub struct Patterns {
 #[allow(clippy::new_without_default)]
 impl Patterns {
     #[must_use]
-    pub const fn new() -> Patterns {
-        Patterns {
+    pub const fn new() -> Self {
+        Self {
             patterns: Vec::new(),
             pattern_nodes: Vec::new(),
         }
