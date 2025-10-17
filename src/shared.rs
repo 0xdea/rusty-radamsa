@@ -397,13 +397,11 @@ pub fn get_files(_files: Vec<String>) -> Result<Vec<String>, GlobError<'static>>
             let parent = parent.unwrap().canonicalize().ok();
             if let Ok(g) = Glob::new(&filepattern) {
                 let dir_path = parent.unwrap_or(".".into());
-                for entry in g.walk(dir_path, 1) {
-                    if let Some(e) = entry.ok() {
-                        if e.file_type().is_file() {
-                            let filepath = e.path().to_string_lossy().to_string();
-                            debug!("Adding file {:#?}", filepath);
-                            all_paths.push(filepath);
-                        }
+                for entry in g.walk(dir_path, 1).flatten() {
+                    if entry.file_type().is_file() {
+                        let filepath = entry.path().to_string_lossy().to_string();
+                        debug!("Adding file {:#?}", filepath);
+                        all_paths.push(filepath);
                     }
                 }
             }
