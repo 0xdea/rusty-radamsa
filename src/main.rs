@@ -1,10 +1,10 @@
+use std::io::Write;
+
 use chrono::Local;
 use clap::{Args, Parser, Subcommand};
 use env_logger::Builder;
 use log::LevelFilter;
 use log::*;
-use rusty_radamsa;
-use std::io::Write;
 
 #[derive(Parser)]
 #[command(

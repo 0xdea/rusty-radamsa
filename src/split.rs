@@ -101,6 +101,7 @@ fn check_node(node: &Node, _delim: Option<(u8, u8)>, index: usize) -> bool {
     false
 }
 
+#[allow(clippy::unnecessary_unwrap)]
 fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
     // use a stack to keep track of the nodes
     let mut stack: Vec<Node> = Vec::new();

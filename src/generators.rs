@@ -448,9 +448,8 @@ impl GenericReader for TcpStream {
                 "r" => {
                     let listener = TcpListener::bind(path)?;
                     debug!("listener {:?}", listener);
-                    let mut stream_iter = listener.incoming();
-                    while let Some(Ok(stream)) = stream_iter.next() {
-                        debug!("waiting for stream!");
+                    debug!("waiting for stream!");
+                    if let Some(Ok(stream)) = listener.incoming().next() {
                         return Ok(stream);
                     }
                     Err(Box::new(NoneString))
