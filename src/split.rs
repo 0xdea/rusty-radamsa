@@ -112,7 +112,7 @@ fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
         if close_delim.is_some()
             && stack
                 .last()
-                .map_or(false, |n| check_node(n, close_delim, index))
+                .is_some_and(|n| check_node(n, close_delim, index))
         {
             let mut node = stack.pop().expect("invalid parentheses sequence");
             node.set_end_index(index + 1);
