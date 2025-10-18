@@ -220,7 +220,7 @@ impl Data {
     fn unlex(self, v: &mut Vec<u8>) {
         match self {
             Self::Texty(a) => {
-                for i in a.into_iter() {
+                for i in a {
                     i.unlex(v);
                 }
             }
@@ -272,7 +272,7 @@ fn parse_bytes(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Data
         );
 
         // combine the mandatory first text chunk with rest of the data
-        let mut ret = vec![Data::Texty(text.to_owned())];
+        let mut ret = vec![Data::Texty(text)];
         ret.extend(rest);
         Ok((remaining, ret))
     }
@@ -302,7 +302,7 @@ impl Ascii {
 
     pub(crate) fn unlex(self) -> Vec<u8> {
         let mut ret = Vec::new();
-        for i in self.0.into_iter() {
+        for i in self.0 {
             i.unlex(&mut ret);
         }
         ret
