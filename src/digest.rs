@@ -48,12 +48,12 @@ pub trait CsDigest {
     fn finalized(&mut self) -> Option<Box<[u8]>>;
 }
 
-impl CsDigest for sha2::Sha256 {
+impl CsDigest for Sha256 {
     fn new_digest() -> Option<Self>
     where
         Self: Sized,
     {
-        Some(sha2::Sha256::new())
+        Some(Self::new())
     }
     fn new_crc(_self: &mut Self) -> Option<&mut Self>
     where
@@ -65,19 +65,17 @@ impl CsDigest for sha2::Sha256 {
         self.update(data);
     }
     fn finalized(&mut self) -> Option<Box<[u8]>> {
-        let f = sha2::Sha256::finalize(self.clone())
-            .to_vec()
-            .into_boxed_slice();
+        let f = Self::finalize(self.clone()).to_vec().into_boxed_slice();
         Some(f)
     }
 }
 
-impl CsDigest for sha2::Sha512 {
+impl CsDigest for Sha512 {
     fn new_digest() -> Option<Self>
     where
         Self: Sized,
     {
-        Some(sha2::Sha512::new())
+        Some(Self::new())
     }
     fn new_crc(_self: &mut Self) -> Option<&mut Self>
     where
@@ -89,9 +87,7 @@ impl CsDigest for sha2::Sha512 {
         self.update(data);
     }
     fn finalized(&mut self) -> Option<Box<[u8]>> {
-        let f = sha2::Sha512::finalize(self.clone())
-            .to_vec()
-            .into_boxed_slice();
+        let f = Self::finalize(self.clone()).to_vec().into_boxed_slice();
         Some(f)
     }
 }
@@ -101,7 +97,7 @@ pub trait CsDigestB {
     fn finalized(&mut self) -> Option<Box<[u8]>>;
 }
 
-impl<'a> CsDigestB for crc::Digest<'a, u32> {
+impl CsDigestB for crc::Digest<'_, u32> {
     fn updated(&mut self, data: &[u8]) {
         self.update(data);
     }
@@ -116,7 +112,7 @@ impl<'a> CsDigestB for crc::Digest<'a, u32> {
     }
 }
 
-impl<'a> CsDigestB for crc::Digest<'a, u64> {
+impl CsDigestB for crc::Digest<'_, u64> {
     fn updated(&mut self, data: &[u8]) {
         self.update(data);
     }
@@ -131,7 +127,7 @@ impl<'a> CsDigestB for crc::Digest<'a, u64> {
     }
 }
 
-impl<'a> CsDigestB for crc::Digest<'a, u128> {
+impl CsDigestB for crc::Digest<'_, u128> {
     fn updated(&mut self, data: &[u8]) {
         self.update(data);
     }
@@ -212,7 +208,7 @@ impl Checksums {
         digest: &mut T,
         data: &[std::boxed::Box<[u8]>],
     ) -> Option<Box<[u8]>> {
-        for block in data.iter() {
+        for block in data {
             digest.updated(block);
         }
         digest.finalized()
@@ -231,7 +227,7 @@ impl Checksums {
                 Self::get_digest(&mut d, data)
             }
             HashType::Sha512 => {
-                let mut d = Sha256::new_digest()?;
+                let mut d = Sha512::new_digest()?;
                 Self::get_digest(&mut d, data)
             }
             HashType::Crc32 => {
@@ -266,7 +262,7 @@ impl Checksums {
                         _ => None,
                     };
                     let mut d = digest?;
-                    for block in data.iter() {
+                    for block in data {
                         d.updated(block);
                     }
                     return d.finalized();
