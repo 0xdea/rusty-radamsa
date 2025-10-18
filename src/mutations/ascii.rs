@@ -9,7 +9,7 @@ use nom::{IResult, Parser};
 use rand::{seq::SliceRandom, Rng, RngCore};
 
 static SILLY_STRINGS: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::new(|| {
-    // XXX: extend this because many of these strings are incredibly Linux-specific
+    // TODO: extend this because many of these strings are incredibly Linux-specific
     // perhaps add a configurable wordlist
     #[rustfmt::skip]
     let ret = vec![

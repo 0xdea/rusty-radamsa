@@ -78,7 +78,7 @@ impl Generators {
         data: Option<&Box<[u8]>>,
     ) -> Option<&mut Generator> {
         let mut total_priority = 0;
-        for generator in self.generators.iter_mut() {
+        for generator in &mut self.generators {
             if !self.generator_nodes.contains(&generator.gen_type) {
                 generator.priority = 0;
                 if let Some(pos) = self
@@ -102,7 +102,7 @@ impl Generators {
             };
 
             match generator.set_fd(paths, data) {
-                Ok(_) => {}
+                Ok(()) => {}
                 Err(e) => {
                     error!(
                         "Failed to set fd for {} due to {}.",
@@ -133,7 +133,7 @@ impl Generators {
 }
 
 /// Generator Type
-#[derive(Debug, EnumIter, Clone, Copy, PartialEq)]
+#[derive(Debug, EnumIter, Clone, Copy, PartialEq, Eq)]
 pub enum GenType {
     Stdin,
     File,
@@ -145,6 +145,7 @@ pub enum GenType {
     Random, // stdout
 }
 
+#[allow(clippy::enum_glob_use)]
 impl GenType {
     #[must_use]
     pub fn id(&self) -> String {
@@ -206,22 +207,16 @@ impl GenType {
                 };
                 Ok(Box::new(random_stream))
             }
-            Self::Jump => Err(Box::new(NoneString)),
-            Self::Pcapng => Err(Box::new(NoneString)),
+            Self::Jump | Self::Pcapng => Err(Box::new(NoneString)),
         }
     }
     #[must_use]
     pub const fn seed(&self) -> u128 {
         use GenType::*;
         match *self {
-            Stdin => STREAM_SEED_BASE,
-            File => STREAM_SEED_BASE,
-            TCPSocket => STREAM_SEED_BASE,
-            UDPSocket => STREAM_SEED_BASE,
+            Stdin | File | TCPSocket | UDPSocket | Pcapng | Random => STREAM_SEED_BASE,
             Buffer => BUFFER_SEED_BASE,
-            Jump => JUMPSTREAM_SEED_BASE, // not implemented yet
-            Pcapng => STREAM_SEED_BASE,
-            Random => STREAM_SEED_BASE, // st
+            Jump => JUMPSTREAM_SEED_BASE, // TODO: not implemented yet
         }
     }
 }
@@ -259,7 +254,7 @@ impl std::fmt::Debug for Generator {
             .field("gen_type", &self.gen_type)
             .field("offset", &self.offset)
             .field("block_size", &self.block_size)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -278,6 +273,7 @@ impl Generator {
             rng: None,
         }
     }
+    #[allow(clippy::cast_possible_truncation)]
     pub fn init(&mut self, rng: &mut dyn RngCore) {
         self.seed = self.seed_base.rands(rng) as u64;
         self.rng = Some(Box::new(ChaCha20Rng::seed_from_u64(self.seed)));
@@ -606,7 +602,7 @@ impl GenericReader for Cursor<Box<[u8]>> {
         buf: Option<Box<[u8]>>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         match buf {
-            Some(b) => Ok(Cursor::<Box<[u8]>>::new(b)),
+            Some(b) => Ok(Self::new(b)),
             None => Err(Box::new(NoWrite)),
         }
     }
@@ -631,6 +627,8 @@ impl GenericReader for Cursor<Box<[u8]>> {
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
+    #[allow(clippy::cast_possible_truncation)]
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         let pos = self.position() as usize;
         self.seek(SeekFrom::Start(0))?;
