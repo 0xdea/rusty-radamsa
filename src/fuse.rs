@@ -3,7 +3,7 @@ use rand::{Rng, RngCore};
 use crate::shared::*;
 
 /// connect prefix of al somewhere to bl, and make sure that (list-fuse l l) != l
-pub(crate) fn fuse<
+pub fn fuse<
     T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
 >(
     rng: &mut dyn RngCore,
@@ -105,10 +105,9 @@ fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash +
     // assuming _prefixes is sorted by length
     for prefix in prefixes {
         if let Some(key) = prefix.first() {
-            if !char_suffix.contains(key) {
+            if char_suffix.insert(key) {
                 let len = prefix.len() - 1;
                 new_prefixes.push(prefix.clone());
-                char_suffix.insert(key);
                 suffixes.retain(|x| {
                     if x.len() < len {
                         hash_suffix.insert(x.clone());
@@ -117,9 +116,6 @@ fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash +
                         true
                     }
                 });
-                if suffixes.is_empty() {
-                    continue;
-                }
             }
         }
     }
