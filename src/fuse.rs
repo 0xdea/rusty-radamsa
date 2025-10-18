@@ -123,45 +123,46 @@ fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash +
     (new_prefixes, new_suffixes)
 }
 
+#[allow(clippy::cast_possible_wrap)]
 fn find_jump_points<
     T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
 >(
     rng: &mut dyn RngCore,
-    _lista: &Vec<T>,
-    _listb: &Vec<T>,
+    lista: &Vec<T>,
+    listb: &Vec<T>,
 ) -> (Vec<T>, Vec<T>) {
     let mut fuel = SEARCH_FUEL;
-    let (mut lista, mut listb) = initial_suffixes(rng, _lista, _listb);
-    if lista.is_empty() || listb.is_empty() {
-        return (_lista.to_vec(), _listb.to_vec());
+    let (mut la, mut lb) = initial_suffixes(rng, lista, listb);
+    if la.is_empty() || lb.is_empty() {
+        return (lista.clone(), listb.clone());
     }
     loop {
         if fuel < 0 {
-            match any_position_pair(rng, &mut lista, &mut listb) {
+            match any_position_pair(rng, &mut la, &mut lb) {
                 Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                None => return (_lista.to_vec(), _listb.to_vec()),
-            }
-        } else {
-            let x = SEARCH_STOP_IP.rands(rng);
-            if x == 0 {
-                match any_position_pair(rng, &mut lista, &mut listb) {
-                    Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                    None => return (_lista.to_vec(), _listb.to_vec()),
-                }
-            } else {
-                let (nodea, nodeb) = split_prefixes(&lista, &listb);
-                if nodea.is_empty() || nodeb.is_empty() {
-                    match any_position_pair(rng, &mut lista, &mut listb) {
-                        Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                        None => return (_lista.to_vec(), _listb.to_vec()),
-                    }
-                } else {
-                    lista = nodea;
-                    listb = nodeb;
-                    fuel -= (lista.len() + listb.len()) as isize;
-                }
+                None => return (lista.clone(), listb.clone()),
             }
         }
+
+        let x = SEARCH_STOP_IP.rands(rng);
+        if x == 0 {
+            match any_position_pair(rng, &mut la, &mut lb) {
+                Some((from, to)) => return (from.to_vec(), to.to_vec()),
+                None => return (lista.clone(), listb.clone()),
+            }
+        }
+
+        let (nodea, nodeb) = split_prefixes(&la, &lb);
+        if nodea.is_empty() || nodeb.is_empty() {
+            match any_position_pair(rng, &mut la, &mut lb) {
+                Some((from, to)) => return (from.to_vec(), to.to_vec()),
+                None => return (lista.clone(), listb.clone()),
+            }
+        }
+
+        la = nodea;
+        lb = nodeb;
+        fuel -= (la.len() + lb.len()) as isize;
     }
 }
 
@@ -175,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_alternating() {
-        let data: Vec<u8> = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n".as_bytes().to_vec();
+        let data: Vec<u8> = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n".to_vec();
         let mut rng = ChaCha20Rng::seed_from_u64(3);
         let new_data = fuse(&mut rng, &data, &data);
         assert_eq!(
