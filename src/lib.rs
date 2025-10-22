@@ -65,7 +65,7 @@ impl std::fmt::Debug for Radamsa {
             .field("patterns", &self.patterns)
             .field("generators", &self.generators)
             .field("outputs", &self.outputs)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
