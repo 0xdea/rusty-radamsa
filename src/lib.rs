@@ -191,6 +191,7 @@ impl Radamsa {
     /// assert_eq!(len, 100)
     /// ```
     #[allow(clippy::borrowed_box)]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn fuzz(
         &mut self,
         data: Option<&Box<[u8]>>,
