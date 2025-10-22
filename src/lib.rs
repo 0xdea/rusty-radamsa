@@ -196,7 +196,7 @@ impl Radamsa {
         &mut self,
         data: Option<&Box<[u8]>>,
         paths: Option<Vec<String>>,
-        _buffer: Option<&mut Box<[u8]>>,
+        mut buffer: Option<&mut Box<[u8]>>,
     ) -> Result<usize, Box<dyn std::error::Error>> {
         let mut out_len;
         debug!(
@@ -209,7 +209,6 @@ impl Radamsa {
         );
         let mut n = 1;
         let mut p = 0;
-        let mut buffer = _buffer;
         self.outputs.init_pipes(&buffer)?;
         // Initial pass
         let generator = self
@@ -221,9 +220,7 @@ impl Radamsa {
             .mux_patterns(generator, &mut self.mutations)
             .unwrap();
 
-        if !self.checksums.use_hashmap {
-            out_len = self.outputs.mux_output(&mut_data, &mut buffer)?;
-        } else {
+        if self.checksums.use_hashmap {
             loop {
                 let cs_exists = match self.checksums.digest_data(&mut_data) {
                     Some(cs) => self.checksums.add(cs).unwrap_or(true),
@@ -248,19 +245,20 @@ impl Radamsa {
                     p += 1;
                     debug!("in count loop");
                     continue;
+                }
+                // Successful unique value
+                out_len = self.outputs.mux_output(&mut_data, &mut buffer)?;
+                p = 0;
+                if n < 1 {
+                    break;
+                } else if n < self.count {
+                    n += 1;
                 } else {
-                    // Successful unique value
-                    out_len = self.outputs.mux_output(&mut_data, &mut buffer)?;
-                    p = 0;
-                    if n < 1 {
-                        break;
-                    } else if n < self.count {
-                        n += 1;
-                    } else {
-                        break;
-                    }
+                    break;
                 }
             }
+        } else {
+            out_len = self.outputs.mux_output(&mut_data, &mut buffer)?;
         }
         Ok(out_len)
     }
