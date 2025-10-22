@@ -601,10 +601,7 @@ impl GenericReader for Cursor<Box<[u8]>> {
         _path: Option<String>,
         buf: Option<Box<[u8]>>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        match buf {
-            Some(b) => Ok(Self::new(b)),
-            None => Err(Box::new(NoWrite)),
-        }
+        Ok(buf.map_or_else(|| Err(Box::new(NoWrite)), |b| Ok(Self::new(b)))?)
     }
     fn gen_read(
         &mut self,
