@@ -375,9 +375,8 @@ impl Radamsa {
             if let Some(digest) = crate::digest::string_digest(chk, &mut digest::init_digests()) {
                 self.checksums.checksum = digest;
                 return Ok(());
-            } else {
-                return Err(Box::new(BadInput));
             }
+            return Err(Box::new(BadInput));
         }
         Ok(())
     }
@@ -615,7 +614,7 @@ mod tests {
         r.set_mutators("bd=3,bf,nop,num=2").expect("bad input");
         r.set_generators("buffer").expect("bad input");
         r.set_patterns("default").expect("bad input");
-        let data: Box<[u8]> = Box::from("ABCDEFG 12345".as_bytes());
+        let data: Box<[u8]> = Box::from(b"ABCDEFG 12345" as &[u8]);
         let mut output = vec![0u8; 20].into_boxed_slice();
         r.fuzz(Some(&data), None, Some(&mut output)).unwrap();
         let expected = vec![
@@ -627,7 +626,7 @@ mod tests {
 
     #[test]
     fn test_radamsa() {
-        let data = Box::from("ABC 1 2 3 4 5 6 7 8 9 10 11 12\n".as_bytes());
+        let data = Box::from(b"ABC 1 2 3 4 5 6 7 8 9 10 11 12\n" as &[u8]);
         let expected: Vec<u8> = vec![
             65, 66, 67, 32, 49, 32, 50, 32, 51, 32, 52, 32, 53, 32, 54, 32, 55, 32, 56, 32, 57, 32,
             49, 48, 32, 49, 49, 32, 49, 50, 57, 10,
