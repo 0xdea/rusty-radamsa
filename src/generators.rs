@@ -696,11 +696,11 @@ fn rand_block_size(rng: &mut dyn RngCore) -> usize {
 
 pub fn get_fd(
     rng: &mut impl Rng,
-    _type: &GenType,
+    gen_type: &GenType,
     path: Option<String>,
     buf: Option<Box<[u8]>>,
 ) -> Result<Box<dyn GenericReader + 'static>, Box<dyn std::error::Error>> {
-    match *_type {
+    match *gen_type {
         GenType::Stdin => {
             let stdin = io::stdin();
             if stdin.is_terminal() {
@@ -733,8 +733,8 @@ struct RandomStream {
     nblocks: usize,
 }
 
-fn random_block(rng: &mut dyn RngCore, _n: usize) -> Vec<u8> {
-    let mut n = _n;
+#[allow(clippy::cast_sign_loss)]
+fn random_block(rng: &mut dyn RngCore, mut n: usize) -> Vec<u8> {
     let mut new_data: Vec<u8> = Vec::new();
     while 0 < n {
         let digit: i128 = rng.gen();
@@ -817,14 +817,14 @@ mod tests {
         let mut buf = Box::from(vec![0u8; 100]);
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let mut fd = get_fd(&mut rng, &GenType::File, Some(filestream_str()), None).ok();
-        let mut _n = 0;
+        let mut n;
         loop {
-            _n = read_byte_vector(fd.as_mut().unwrap(), &mut buf, 0).unwrap_or_default();
-            if _n == 0 {
+            n = read_byte_vector(fd.as_mut().unwrap(), &mut buf, 0).unwrap_or_default();
+            if n == 0 {
                 break;
             }
         }
-        assert_eq!(_n, 0);
+        assert_eq!(n, 0);
     }
 
     #[test]
