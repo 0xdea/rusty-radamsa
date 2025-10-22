@@ -855,7 +855,7 @@ mod tests {
     #[test]
     fn test_read_byte_vector_buff() {
         let mut buf = Box::from(vec![0u8; 10]);
-        let data = Box::from("Hello World 1 2 3 4 5 6 7 8 9\n".as_bytes());
+        let data = Box::from(b"Hello World 1 2 3 4 5 6 7 8 9\n" as &[u8]);
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let fd = get_fd(&mut rng, &GenType::Buffer, None, Some(data)).ok();
         let n = read_byte_vector(&mut fd.unwrap(), &mut buf, 0).ok();
@@ -864,17 +864,18 @@ mod tests {
     #[test]
     fn test_read_byte_vector_buff_eof() {
         let mut buf = Box::from(vec![0u8; 40]);
-        let data: Box<[u8]> = Box::from("Hello World 1 2 3 4 5 6 7 8 9\n".as_bytes());
+        let data: Box<[u8]> = Box::from(b"Hello World 1 2 3 4 5 6 7 8 9\n" as &[u8]);
         let mut rng = ChaCha20Rng::seed_from_u64(42);
         let fd = get_fd(&mut rng, &GenType::Buffer, None, Some(data)).ok();
         let n = read_byte_vector(&mut fd.unwrap(), &mut buf, 0).ok();
         assert_eq!(n, Some(30));
     }
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
     fn test_next_block() {
-        let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         use rand::SeedableRng;
         use rand_chacha::ChaCha20Rng;
+        let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let mut generator = Generator::new(GenType::File);
         generator.init(&mut rng);
@@ -886,12 +887,13 @@ mod tests {
         assert_eq!(total_len, file_len);
     }
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
     fn test_generators() {
+        use rand::SeedableRng;
+        use rand_chacha::ChaCha20Rng;
         let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
         let mut generators = Generators::new();
         generators.init();
-        use rand::SeedableRng;
-        use rand_chacha::ChaCha20Rng;
         let mut rng = ChaCha20Rng::seed_from_u64(1_675_126_973);
         let paths = vec![filestream_str()];
         generators.generator_nodes = string_generators(

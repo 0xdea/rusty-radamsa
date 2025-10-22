@@ -87,7 +87,7 @@ pub fn list_swap<T: Clone>(rng: &mut dyn RngCore, data: Vec<T>) -> Vec<T> {
 pub fn list_perm<T: Clone>(rng: &mut dyn RngCore, data: Vec<T>) -> Vec<T> {
     debug!("list_perm");
     if data.len() < 3 {
-        data.to_vec()
+        data
     } else {
         let min_range = data.len() - 3;
         let from = match min_range {
