@@ -161,10 +161,10 @@ fn main() {
         return;
     }
 
-    let mut radamsa = match cli.seed {
-        Some(s) => rusty_radamsa::Radamsa::new_with_seed(s),
-        None => rusty_radamsa::Radamsa::new(),
-    };
+    let mut radamsa = cli.seed.map_or_else(
+        rusty_radamsa::Radamsa::new,
+        rusty_radamsa::Radamsa::new_with_seed,
+    );
     radamsa.init();
     radamsa.verbose = cli.verbose;
     if cli.verbose {
@@ -211,10 +211,9 @@ fn main() {
         debug!("o is empty");
         radamsa.set_output(vec!["default"]).expect("bad input");
     }
-    let all_paths = match cli.file {
-        Some(files) => rusty_radamsa::shared::get_files(files).ok(),
-        None => None,
-    };
+    let all_paths = cli
+        .file
+        .and_then(|files| rusty_radamsa::shared::get_files(files).ok());
 
     radamsa.checksum_max(cli.checksums);
     radamsa.delay = cli.delay;
