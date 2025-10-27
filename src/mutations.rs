@@ -456,6 +456,7 @@ fn adjust_priority(pri: usize, delta: isize) -> usize {
 // Number Mutators
 
 // get digit
+#[allow(clippy::cast_possible_truncation)]
 fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     let mut out = vec![];
     let mut n = i256::from(0);
@@ -487,6 +488,9 @@ fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     }
     (None, None)
 }
+
+#[allow(clippy::cast_possible_wrap)]
+#[allow(clippy::cast_sign_loss)]
 fn mutate_a_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (isize, Option<Vec<u8>>) {
     let mut offset = 0_usize;
     let mut nfound = 0_usize;
@@ -520,8 +524,8 @@ fn mutate_a_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (isize, Option
 }
 
 // -> lst, delta
-pub fn sed_num(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let (which, data) = mutate_a_num(rng, _data);
+pub fn sed_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let (which, data) = mutate_a_num(rng, data);
     // check if binary
     let is_bin = match data {
         Some(ref d) => is_binarish(Some(d)),
