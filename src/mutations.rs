@@ -232,9 +232,7 @@ impl MutaType {
             UTF8Widen => sed_utf8_widen(rng, data),
             UTF8Insert => sed_utf8_insert(rng, data),
             Num => sed_num(rng, data),
-            Str => (None, 0),
-            Word => (None, 0),
-            Xp => (None, 0),
+            Str | Word | Xp => (None, 0),
             FuseThis => sed_fuse_this(rng, data),
             FuseNext => sed_fuse_next(rng, data),
             FuseOld => sed_fuse_old(rng, data),
@@ -285,7 +283,7 @@ impl std::fmt::Debug for Mutator {
             .field("score", &self.score)
             .field("weight", &self.weight)
             .field("delta", &self.delta)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -312,6 +310,7 @@ impl Mutator {
 
 #[allow(clippy::new_without_default)]
 impl Mutations {
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             mutators: BTreeMap::new(),
@@ -330,7 +329,7 @@ impl Mutations {
     pub fn randomize(&mut self, rng: &mut dyn RngCore) {
         if self.mutas.is_some() {
             // Apply random scores
-            for (_, mutator) in self.mutators.iter_mut() {
+            for mutator in self.mutators.values_mut() {
                 if self.mutator_nodes.contains(&mutator.muta) {
                     let rand_value = MAX_SCORE.rands(rng);
                     mutator.score = if rand_value < 2 {
@@ -348,7 +347,7 @@ impl Mutations {
 
     fn weighted_permutation(&mut self, rng: &mut dyn RngCore) -> Vec<&mut Mutator> {
         let mut out_mutas: Vec<&mut Mutator> = vec![];
-        for (_, m) in self.mutators.iter_mut() {
+        for m in self.mutators.values_mut() {
             if let Some(mutas) = &self.mutas {
                 if mutas.contains(&m.muta) && m.priority > 0 {
                     m.weight = (m.priority * m.score).rands(rng);
@@ -370,10 +369,10 @@ impl Mutations {
     pub fn mux_fuzzers(
         &mut self,
         rng: &mut dyn RngCore,
-        _data: Option<&Vec<u8>>,
+        maybe_data: Option<&Vec<u8>>,
     ) -> Option<Vec<u8>> {
         let mut mutas = self.weighted_permutation(rng);
-        let data = _data?;
+        let data = maybe_data?;
         while !mutas.is_empty() {
             let muta = mutas.pop()?;
             debug!("muta {}", muta.id());
@@ -382,10 +381,10 @@ impl Mutations {
                     // always remember whatever was learned
                     muta.score = adjust_priority(muta.score, delta);
                     muta.delta = delta;
-                    if new_data != *data {
-                        return Some(new_data);
-                    } else {
+                    if new_data == *data {
                         debug!("Nothing changed");
+                    } else {
+                        return Some(new_data);
                     }
                 }
                 _ => {
@@ -393,7 +392,7 @@ impl Mutations {
                 }
             }
         }
-        _data.cloned()
+        maybe_data.cloned()
     }
 }
 
@@ -440,6 +439,8 @@ fn rand_delta_up(rng: &mut dyn RngCore) -> isize {
     }
 }
 
+#[allow(clippy::cast_sign_loss)]
+#[allow(clippy::cast_possible_wrap)]
 fn adjust_priority(pri: usize, delta: isize) -> usize {
     match delta {
         0 => pri,
@@ -459,7 +460,7 @@ fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
     let mut out = vec![];
     let mut n = i256::from(0);
     if let Some(data) = data {
-        for val in data.iter() {
+        for val in data {
             if char::from(*val).is_ascii_digit() {
                 out.push(*val);
             } else {
@@ -467,11 +468,10 @@ fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
             }
         }
         if out.is_empty() {
-            if !data.is_empty() {
-                return (None, Some(1));
-            } else {
+            if data.is_empty() {
                 return (None, None);
             }
+            return (None, Some(1));
         }
         for (pos, m) in out.iter().rev().enumerate() {
             let num = i256::from(char::from(*m).to_digit(10).unwrap_or(0));
