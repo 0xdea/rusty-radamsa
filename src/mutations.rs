@@ -801,7 +801,7 @@ pub fn sed_seq_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec
 
 // Lines
 
-fn get_lines(data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
+fn get_lines(data: Option<&Vec<u8>>) -> std::vec::Vec<std::vec::Vec<u8>> {
     let mut lines: Vec<Vec<u8>> = vec![];
     let mut prev_index = 0;
     if let Some(data) = data {
@@ -816,19 +816,18 @@ fn get_lines(data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
             }
         }
     }
-    Some(lines)
+    lines
 }
 
 fn try_lines(data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
     data?;
-    if let Some(lines) = get_lines(data) {
-        if let Some(first_line) = lines.first() {
-            // first line (start of block) looks binary
-            if is_binarish(Some(first_line)) {
-                return None;
-            }
-            return Some(lines);
+    let lines = get_lines(data);
+    if let Some(first_line) = lines.first() {
+        // first line (start of block) looks binary
+        if is_binarish(Some(first_line)) {
+            return None;
         }
+        return Some(lines);
     }
     None
 }
@@ -1169,8 +1168,8 @@ mod tests {
         );
 
         let data = Vec::from([0x41]);
-        let (_data, _delta) = sed_byte_flip(&mut rng, Some(&data));
-        if let Some(data_new) = _data {
+        let (maybe_data, _delta) = sed_byte_flip(&mut rng, Some(&data));
+        if let Some(data_new) = maybe_data {
             assert_eq!(data_new.len(), 1, "Size did not change");
             let b = data_new[0] ^ data[0];
             assert_eq!(b.count_ones(), 1, "Only a single bit was flipped");
@@ -1262,16 +1261,16 @@ mod tests {
         };
         let a = FUNNY_UNICODE.iter().find(|x| data2.as_slice() == **x);
         assert!(a.is_some());
-        debug!("{:?}", a);
+        debug!("{a:?}");
 
         for i in FUNNY_UNICODE.iter() {
-            debug!("{:?}", i);
+            debug!("{i:?}");
         }
     }
 
     #[test]
     fn test_sed_seq_repeat() {
-        let data1 = Vec::from("ABCDEFGHIJ".as_bytes());
+        let data1 = Vec::from(b"ABCDEFGHIJ");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_seq_repeat(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
@@ -1285,7 +1284,7 @@ mod tests {
 
     #[test]
     fn test_sed_seq_del() {
-        let data1 = Vec::from("ABCDEFGHIJ".as_bytes());
+        let data1 = Vec::from(b"ABCDEFGHIJ");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_seq_del(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
@@ -1298,13 +1297,14 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::naive_bytecount)]
     fn test_line_op() {
         let data1 = Vec::from(
             "ABCDE\nKLMNOPQRSTUV\nZYX\nfeklafnewlka\nkelwflknewfw\n123214324\nhello world\n"
                 .as_bytes(),
         );
         //println_lossy(&data1);
-        let mut data2 = Vec::from("ABCDEFGHIJ\nKLNOPQRSTUV\nZYX\n".as_bytes());
+        let mut data2 = Vec::from(b"ABCDEFGHIJ\nKLNOPQRSTUV\nZYX\n");
         data2.insert(5, 0xFE);
         data2.insert(6, 0xFE);
         data2.insert(7, 0xFE);
@@ -1318,18 +1318,18 @@ mod tests {
         //debug!("{:?}", l);
         assert_eq!(1, delta);
 
-        let (_l, _delta) = sed_line_dup(&mut rng, Some(&data1));
+        let (l, _delta) = sed_line_dup(&mut rng, Some(&data1));
         // println_lossy(&data1);
         // println_lossy(&l.unwrap());
         let og_count = data1.iter().filter(|&n| *n == 10u8).count();
-        let new_count = _l.unwrap().iter().filter(|&n| *n == 10u8).count();
+        let new_count = l.unwrap().iter().filter(|&n| *n == 10u8).count();
         assert_eq!(og_count + 1, new_count);
 
         let (_l, _delta) = sed_line_clone(&mut rng, Some(&data1));
         let (_l, _delta) = sed_line_swap(&mut rng, Some(&data1));
-        let (_l, _delta) = sed_line_perm(&mut rng, Some(&data1));
+        let (l, _delta) = sed_line_perm(&mut rng, Some(&data1));
         debug!("PERM:");
-        println_lossy(&_l.unwrap());
+        println_lossy(&l.unwrap());
         let (_l, _delta) = sed_line_repeat(&mut rng, Some(&data1));
         let (_l, _delta) = sed_line_ins(&mut rng, Some(&data1));
         let (_l, _delta) = sed_line_replace(&mut rng, Some(&data1));
@@ -1339,8 +1339,8 @@ mod tests {
 
     #[test]
     fn test_sed_fuse_next() {
-        let data1 = Vec::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ\n".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1683310580);
+        let data1 = Vec::from(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
+        let mut rng = ChaCha20Rng::seed_from_u64(1_683_310_580);
         let (data2, _delta) = sed_fuse_next(&mut rng, Some(&data1));
         let expected = vec![65, 66, 67, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 10];
         assert_eq!(data2, Some(expected));
@@ -1348,8 +1348,8 @@ mod tests {
 
     #[test]
     fn test_sed_fuse_old() {
-        let data1 = Vec::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ\n".as_bytes());
-        let mut rng = ChaCha20Rng::seed_from_u64(1683310580);
+        let data1 = Vec::from(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
+        let mut rng = ChaCha20Rng::seed_from_u64(1_683_310_580);
         let (data2, _delta) = sed_fuse_old(&mut rng, Some(&data1));
         let expected = vec![
             65, 66, 67, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 10, 65, 66, 67, 81, 82, 83, 84, 85,
