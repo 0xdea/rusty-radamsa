@@ -220,12 +220,12 @@ pub fn pat_burst(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]
 
 fn mutate_multi(
     rng: &mut dyn RngCore,
-    _data: &Vec<Vec<u8>>,
+    data: &Vec<Vec<u8>>,
     mutas: &mut Mutations,
 ) -> Option<Vec<Vec<u8>>> {
     let mut ip = crate::shared::INITIAL_IP.rands(rng);
     let mut output: Vec<Vec<u8>> = Vec::new();
-    for data in _data {
+    for data in data {
         let n = ip.rands(rng);
         if n == 0 {
             if let Some(new_data) = mutas.mux_fuzzers(rng, Some(data)) {
@@ -252,7 +252,7 @@ fn mutate_once(
     let mut og_output: Vec<u8> = Vec::new();
     let mut new_output: Vec<Vec<u8>> = Vec::new();
     while let (Some(ref data), last_block) = gen.next_block() {
-        og_output.append(&mut data.to_vec());
+        og_output.append(&mut data.clone());
         let n = ip.rands(gen.rng.as_mut().unwrap());
         if n == 0 || last_block {
             if let Some(new_data) = mutas.mux_fuzzers(gen.rng.as_mut().unwrap(), Some(data)) {
@@ -290,6 +290,7 @@ mod tests {
 
     /// Test stream data
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
     fn test_mutate_once() {
         //let path = ".\\tests\\filestream.txt".to_string();
         let file_len = std::fs::metadata(filestream()).unwrap().len() as usize;
