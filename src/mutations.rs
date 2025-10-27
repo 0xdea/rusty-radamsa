@@ -544,7 +544,10 @@ pub fn sed_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>
 
 // Byte-level Mutations
 
-pub fn sed_byte_drop(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_drop(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -555,7 +558,10 @@ pub fn sed_byte_drop(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Op
     (Some(new_data), d)
 }
 
-pub fn sed_byte_inc(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_inc(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -566,7 +572,10 @@ pub fn sed_byte_inc(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Opt
     (Some(new_data), d)
 }
 
-pub fn sed_byte_dec(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_dec(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -577,7 +586,10 @@ pub fn sed_byte_dec(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Opt
     (Some(new_data), d)
 }
 
-pub fn sed_byte_flip(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_flip(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -589,7 +601,10 @@ pub fn sed_byte_flip(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Op
     (Some(new_data), d)
 }
 
-pub fn sed_byte_insert(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_insert(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -607,7 +622,10 @@ fn repeat_len(rng: &mut dyn RngCore) -> usize {
     rng.gen_range(0..limit)
 }
 
-pub fn sed_byte_repeat(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_repeat(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let n = repeat_len(rng);
     let data = maybe_data.expect("_data is not None");
@@ -623,7 +641,10 @@ pub fn sed_byte_repeat(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (
     (Some(new_data), d)
 }
 
-pub fn sed_byte_random(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_random(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -635,7 +656,10 @@ pub fn sed_byte_random(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (
     (Some(new_data), d)
 }
 
-pub fn sed_byte_perm(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_perm(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
@@ -647,7 +671,10 @@ pub fn sed_byte_perm(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Op
     (Some(new_data), d)
 }
 
-pub fn sed_utf8_widen(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_utf8_widen(
+    rng: &mut dyn RngCore,
+    maybe_data: Option<&Vec<u8>>,
+) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let data = maybe_data.expect("_data is not None");
     let mut new_data = data.clone();
