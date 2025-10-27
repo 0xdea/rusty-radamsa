@@ -111,6 +111,7 @@ pub enum MutaType {
     Nop,
 }
 
+#[allow(clippy::enum_glob_use)]
 impl MutaType {
     #[must_use]
     pub fn id(&self) -> String {
@@ -154,7 +155,9 @@ impl MutaType {
         };
         id.to_string()
     }
+
     #[must_use]
+    #[allow(clippy::enum_glob_use)]
     pub fn info(&self) -> String {
         use MutaType::*;
         let info = match *self {
@@ -196,9 +199,11 @@ impl MutaType {
         };
         info.to_string()
     }
-    fn mutate(&self, rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+
+    #[allow(clippy::enum_glob_use)]
+    fn mutate(self, rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
         use MutaType::*;
-        match *self {
+        match self {
             AsciiBad => ascii_bad(rng, data),
             ByteDrop => sed_byte_drop(rng, data),
             ByteFlip => sed_byte_flip(rng, data),
