@@ -950,9 +950,8 @@ pub fn sed_tree_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Ve
         let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDel);
         if new_data.is_some() {
             return (new_data, 1);
-        } else {
-            return (new_data, -1);
         }
+        return (new_data, -1);
     }
     (None, 0)
 }
@@ -1011,7 +1010,7 @@ pub fn ascii_bad(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u
                 cs.mutate(rng);
                 return (Some(cs.unlex()), rand_delta_up(rng));
             }
-            Err(_) => {
+            Err(()) => {
                 return (Some(data.clone()), -1);
             }
         }
@@ -1059,7 +1058,7 @@ mod tests {
             std::str::from_utf8(d2),
             Ok("170141183460469231731687303715884105729 3\n")
         );
-        let num_2: Vec<u8> = "1 2 3 4 5 6 7\n".as_bytes().to_vec();
+        let num_2: Vec<u8> = b"1 2 3 4 5 6 7\n".to_vec();
         let mut rng3 = ChaCha20Rng::seed_from_u64(1_674_713_145);
         let (_which, data3) = mutate_a_num(&mut rng3, Some(&num_2));
         let d3 = data3.as_ref().unwrap();
@@ -1067,7 +1066,7 @@ mod tests {
     }
     #[test]
     fn test_sed_num() {
-        let num_1 = Vec::from("1 2 3 4 5 6 7 8 9 10 11 12\n".as_bytes()); // not-binary
+        let num_1 = Vec::from(b"1 2 3 4 5 6 7 8 9 10 11 12\n"); // not-binary
         let num_2 = vec![255, 32, 129, 50, 49, 32, 51, 10]; // binary
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (_data, delta) = sed_num(&mut rng, Some(&num_1));
@@ -1116,8 +1115,8 @@ mod tests {
         );
 
         let data = Vec::from([0x41]);
-        let (_data, _delta) = sed_byte_inc(&mut rng, Some(&data));
-        if let Some(data_new) = _data {
+        let (data, _delta) = sed_byte_inc(&mut rng, Some(&data));
+        if let Some(data_new) = data {
             assert_eq!(data_new.len(), 1, "Size did not change");
             assert_eq!(data_new[0], 0x42, "Value was incremented");
         }
@@ -1143,8 +1142,8 @@ mod tests {
         );
 
         let data = Vec::from([0x41]);
-        let (_data, _delta) = sed_byte_dec(&mut rng, Some(&data));
-        if let Some(data_new) = _data {
+        let (data, _delta) = sed_byte_dec(&mut rng, Some(&data));
+        if let Some(data_new) = data {
             assert_eq!(data_new.len(), 1, "Size did not change");
             assert_eq!(data_new[0], 0x40, "Value was decremented");
         }
@@ -1180,7 +1179,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_insert() {
-        let data = Vec::from("ABCDEFG".as_bytes());
+        let data = Vec::from(b"ABCDEFG");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_insert(&mut rng, Some(&data));
         assert_eq!(
@@ -1189,7 +1188,7 @@ mod tests {
             "Size increased by one"
         );
 
-        let data = Vec::from("".as_bytes());
+        let data = Vec::from(b"");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_insert(&mut rng, Some(&data));
         assert_eq!(
@@ -1201,7 +1200,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_repeat() {
-        let data = Vec::from("AAAAAAAA".as_bytes());
+        let data = Vec::from(b"AAAAAAAA");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_repeat(&mut rng, Some(&data));
         assert!(
@@ -1212,7 +1211,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_random() {
-        let data = Vec::from("AAAAAAAA".as_bytes());
+        let data = Vec::from(b"AAAAAAAA");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_random(&mut rng, Some(&data));
         assert_eq!(
@@ -1224,7 +1223,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_perm() {
-        let data1 = Vec::from("ABCDEFGHI".as_bytes());
+        let data1 = Vec::from(b"ABCDEFGHI");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_perm(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
@@ -1242,7 +1241,7 @@ mod tests {
 
     #[test]
     fn test_sed_utf8_widen() {
-        let data1 = Vec::from("1".as_bytes());
+        let data1 = Vec::from(b"1");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_utf8_widen(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
@@ -1255,7 +1254,7 @@ mod tests {
 
     #[test]
     fn test_sed_utf8_insert() {
-        let data1 = Vec::from("".as_bytes());
+        let data1 = Vec::from(b"");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_utf8_insert(&mut rng, Some(&data1));
         let Some(data2) = data2 else {
