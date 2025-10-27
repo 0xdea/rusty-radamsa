@@ -527,19 +527,15 @@ fn mutate_a_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (isize, Option
 pub fn sed_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let (which, data) = mutate_a_num(rng, data);
     // check if binary
-    let is_bin = match data {
-        Some(ref d) => is_binarish(Some(d)),
-        None => false,
-    };
+    let is_bin = data.as_ref().is_some_and(|d| is_binarish(Some(d)));
     if which == 0 {
         //textual with less frequent numbers
         debug!("textual with less numbers");
         let n = 10_usize.rands(rng);
         if n == 0 {
             return (data, -1);
-        } else {
-            return (data, 0);
         }
+        return (data, 0);
     } else if is_bin {
         return (data, -1);
     }
