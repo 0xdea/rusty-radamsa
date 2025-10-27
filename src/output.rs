@@ -61,17 +61,17 @@ impl Outputs {
         let mut new_outputs: Vec<Output> = vec![];
         for output in &self.outputs {
             if let Some(paths) = &output.paths {
-                if !paths.is_empty() {
+                if paths.is_empty() {
+                    let mut new_output = output.clone();
+                    if new_output.set_fd(None, &None).is_ok() {
+                        new_outputs.push(new_output);
+                    }
+                } else {
                     for p in paths {
                         let mut new_output = output.clone();
                         if new_output.set_fd(Some(p.clone()), &None).is_ok() {
                             new_outputs.push(new_output);
                         }
-                    }
-                } else {
-                    let mut new_output = output.clone();
-                    if new_output.set_fd(None, &None).is_ok() {
-                        new_outputs.push(new_output);
                     }
                 }
             } else {
@@ -86,17 +86,17 @@ impl Outputs {
     }
     pub fn mux_output(
         &mut self,
-        _data: &Vec<u8>,
+        data: &[u8],
         buffer: &mut Option<&mut Box<[u8]>>,
     ) -> Result<usize, Box<dyn std::error::Error>> {
         debug!("mux output");
         let data: Vec<u8> = match self.truncate {
-            0 => _data.clone(), // if truncate is zero, no truncation happens
+            0 => data.to_owned(), // if truncate is zero, no truncation happens
             _ => {
-                if self.truncate > _data.len() {
-                    _data.clone()
+                if self.truncate > data.len() {
+                    data.to_owned()
                 } else {
-                    _data[..self.truncate].to_vec()
+                    data[..self.truncate].to_vec()
                 }
             }
         };
@@ -114,12 +114,12 @@ impl Outputs {
                         ***buf = vec.into_boxed_slice();
                         buf[..resize_len].clone_from_slice(&data[..resize_len]);
                     } else {
-                        let mut max_len = buf.len();
-                        if data.len() < buf.len() {
-                            max_len = data.len();
-                        }
-                        let gr: &dyn crate::generators::GenericReader =
-                            output.fd.as_ref().unwrap().as_ref();
+                        let max_len = if data.len() < buf.len() {
+                            data.len()
+                        } else {
+                            buf.len()
+                        };
+                        let gr: &dyn GenericReader = output.fd.as_ref().unwrap().as_ref();
                         let cursor: &Cursor<Box<[u8]>> = gr
                             .as_any()
                             .downcast_ref::<Cursor<Box<[u8]>>>()
@@ -162,17 +162,17 @@ impl std::fmt::Debug for Output {
             .field("desc", &self.desc)
             .field("fd_type", &self.fd_type)
             .field("paths", &self.paths)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
 impl Output {
     #[must_use]
-    pub fn new(id: &str, desc: &str, _type: OutputType) -> Self {
+    pub fn new(id: &str, desc: &str, output_type: OutputType) -> Self {
         Self {
             id: id.to_string(),
             desc: desc.to_string(),
-            fd_type: _type,
+            fd_type: output_type,
             fd: None,
             paths: None,
         }
@@ -188,21 +188,19 @@ impl Output {
         Ok(())
     }
     pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn std::error::Error>> {
-        match self.fd {
-            Some(ref mut fd) => fd.gen_write(data, 0),
-            None => {
-                error!("fd failed for {}", self.id);
-                Ok(0)
-            }
+        if let Some(ref mut fd) = self.fd {
+            fd.gen_write(data, 0)
+        } else {
+            error!("fd failed for {}", self.id);
+            Ok(0)
         }
     }
     pub fn flush_bvecs(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
-        match self.fd {
-            Some(ref mut fd) => fd.gen_flush(),
-            None => {
-                error!("fd failed for {}", self.id);
-                Ok(0)
-            }
+        if let Some(ref mut fd) = self.fd {
+            fd.gen_flush()
+        } else {
+            error!("fd failed for {}", self.id);
+            Ok(0)
         }
     }
     pub fn write_all(&mut self, data: &Vec<Vec<u8>>) -> Result<(), Box<dyn std::error::Error>> {
@@ -220,7 +218,7 @@ impl Output {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OutputType {
     Stdout,
     File,
