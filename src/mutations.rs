@@ -544,12 +544,9 @@ pub fn sed_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>
 
 // Byte-level Mutations
 
-pub fn sed_byte_drop(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_drop(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -558,12 +555,9 @@ pub fn sed_byte_drop(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_inc(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_inc(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -572,12 +566,9 @@ pub fn sed_byte_inc(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_dec(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_dec(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -586,12 +577,9 @@ pub fn sed_byte_dec(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_flip(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_flip(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let b = 1 << rng.gen_range(0..8);
@@ -601,12 +589,9 @@ pub fn sed_byte_flip(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_insert(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_insert(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     let b = rng.gen::<u8>();
     let p = rng.gen_range(0..=data.len());
@@ -622,13 +607,10 @@ fn repeat_len(rng: &mut dyn RngCore) -> usize {
     rng.gen_range(0..limit)
 }
 
-pub fn sed_byte_repeat(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_repeat(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let n = repeat_len(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -641,12 +623,9 @@ pub fn sed_byte_repeat(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_random(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_random(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let b = rng.gen::<u8>();
@@ -656,12 +635,9 @@ pub fn sed_byte_random(
     (Some(new_data), d)
 }
 
-pub fn sed_byte_perm(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_perm(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -671,12 +647,9 @@ pub fn sed_byte_perm(
     (Some(new_data), d)
 }
 
-pub fn sed_utf8_widen(
-    rng: &mut dyn RngCore,
-    maybe_data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
+pub fn sed_utf8_widen(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = maybe_data.expect("_data is not None");
+    let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
@@ -783,10 +756,10 @@ static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::n
     ret
 });
 
-pub fn sed_utf8_insert(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_utf8_insert(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = data.expect("data is not None");
+    let mut new_data = data.clone();
     let p = rng.gen_range(0..=data.len());
     let bytes = FUNNY_UNICODE.choose(rng).expect("choose() should not fail");
     for i in bytes.iter().rev() {
@@ -796,8 +769,8 @@ pub fn sed_utf8_insert(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     (Some(new_data), d)
 }
 
-pub fn sed_seq_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let data = _data.expect("_data is not None");
+pub fn sed_seq_repeat(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let data = data.expect("data is not None");
     if data.len() >= 2 {
         let mut new_data = Vec::new();
         let start = rng.gen_range(0..data.len() - 1);
@@ -815,14 +788,14 @@ pub fn sed_seq_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option
         new_data.extend(post);
         (Some(new_data), d)
     } else {
-        (Some(data.to_vec()), 0)
+        (Some(data.clone()), 0)
     }
 }
 
-pub fn sed_seq_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let data = _data.expect("_data is not None");
+pub fn sed_seq_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let data = data.expect("data is not None");
     let d = rand_delta(rng);
-    let new_data = crate::generic::list_del_seq(rng, data.to_vec());
+    let new_data = crate::generic::list_del_seq(rng, data.clone());
     (Some(new_data), d)
 }
 
@@ -860,13 +833,13 @@ fn try_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
     None
 }
 
-pub fn sed_line_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    let data = _data.expect("_data is not None");
+pub fn sed_line_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    let data = data.expect("data is not None");
     if let Some(lines) = try_lines(Some(data)) {
         let new_data = crate::generic::list_del(rng, lines).concat();
         return (Some(new_data), 1);
     }
-    (Some(data.to_vec()), -1)
+    (Some(data.clone()), -1)
 }
 
 pub fn sed_line_del_seq(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
@@ -901,15 +874,15 @@ pub fn sed_line_swap(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<V
     (None, -1)
 }
 
-pub fn sed_line_perm(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_line_perm(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     debug!("sed_line_perm");
-    let data = _data.expect("_data is not None");
+    let data = data.expect("data is not None");
     if let Some(lines) = try_lines(Some(data)) {
         let new_lines: Vec<Vec<u8>> = crate::generic::list_perm(rng, lines);
         debug!("new_lines {new_lines:?}");
         return (Some(new_lines.concat()), 1);
     }
-    (Some(data.to_vec()), -1)
+    (Some(data.clone()), -1)
 }
 
 pub fn sed_line_repeat(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
@@ -1112,7 +1085,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_drop() {
-        let data = Vec::from("ABCDEFG".as_bytes());
+        let data = Vec::from(b"ABCDEFG");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_drop(&mut rng, Some(&data));
         assert_eq!(
@@ -1121,10 +1094,10 @@ mod tests {
             "Exactly one byte was dropped"
         );
 
-        let data = Vec::from("".as_bytes());
-        let (_data, _delta) = sed_byte_drop(&mut rng, Some(&data));
+        let data = Vec::from(b"");
+        let (data, _delta) = sed_byte_drop(&mut rng, Some(&data));
         assert_eq!(
-            _data.expect("_data is not None").len(),
+            data.expect("data is not None").len(),
             0,
             "Zero-sized input stays empty"
         );
@@ -1132,7 +1105,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_inc() {
-        let data = Vec::from("ABCDEFG".as_bytes());
+        let data = Vec::from(b"ABCDEFG");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_inc(&mut rng, Some(&data));
         assert_eq!(
@@ -1141,10 +1114,10 @@ mod tests {
             "Size did not change"
         );
 
-        let data = Vec::from("".as_bytes());
-        let (_data, _delta) = sed_byte_inc(&mut rng, Some(&data));
+        let data = Vec::from(b"");
+        let (data, _delta) = sed_byte_inc(&mut rng, Some(&data));
         assert_eq!(
-            _data.expect("_data is not None").len(),
+            data.expect("data is not None").len(),
             0,
             "Zero-sized input stays empty"
         );
@@ -1159,7 +1132,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_dec() {
-        let data = Vec::from("ABCDEFG".as_bytes());
+        let data = Vec::from(b"ABCDEFG");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_dec(&mut rng, Some(&data));
         assert_eq!(
@@ -1168,10 +1141,10 @@ mod tests {
             "Size did not change"
         );
 
-        let data = Vec::from("".as_bytes());
-        let (_data, _delta) = sed_byte_dec(&mut rng, Some(&data));
+        let data = Vec::from(b"");
+        let (data, _delta) = sed_byte_dec(&mut rng, Some(&data));
         assert_eq!(
-            _data.expect("_data is not None").len(),
+            data.expect("data is not None").len(),
             0,
             "Zero-sized input stays empty"
         );
@@ -1186,7 +1159,7 @@ mod tests {
 
     #[test]
     fn test_sed_byte_flip() {
-        let data = Vec::from("ABCDEFG".as_bytes());
+        let data = Vec::from(b"ABCDEFG");
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let (data2, _delta) = sed_byte_flip(&mut rng, Some(&data));
         assert_eq!(
@@ -1195,10 +1168,10 @@ mod tests {
             "Size did not change"
         );
 
-        let data = Vec::from("".as_bytes());
-        let (_data, _delta) = sed_byte_flip(&mut rng, Some(&data));
+        let data = Vec::from(b"");
+        let (data, _delta) = sed_byte_flip(&mut rng, Some(&data));
         assert_eq!(
-            _data.expect("_data is not None").len(),
+            data.expect("data is not None").len(),
             0,
             "Zero-sized input stays empty"
         );
