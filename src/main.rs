@@ -73,6 +73,7 @@ enum Commands {
 }
 
 #[derive(Args, Debug)]
+#[allow(clippy::struct_excessive_bools)]
 struct ListArgs {
     /// List all mutations, generators, patterns, hashes
     #[arg(short, long, default_value_t = false)]
@@ -101,9 +102,9 @@ fn match_lists(cmd: &Commands) {
                 println!("MUTATIONS:\n----------");
                 println!("  DEFAULT: {}", rusty_radamsa::mutations::DEFAULT_MUTATIONS);
                 let mutations = rusty_radamsa::mutations::init_mutations();
-                mutations.iter().for_each(|(_, x)| {
+                for x in mutations.values() {
                     println!("    {0: <6} {1: <10}", x.id(), x.info());
-                });
+                }
                 println!("---");
             }
             if list.generators || list.all {
@@ -113,40 +114,40 @@ fn match_lists(cmd: &Commands) {
                     rusty_radamsa::generators::DEFAULT_GENERATORS
                 );
                 let mutations = rusty_radamsa::generators::init_generators();
-                mutations.iter().for_each(|x| {
+                for x in &mutations {
                     println!("    {0: <6} {1: <10}", x.gen_type.id(), x.gen_type.info());
-                });
+                }
                 println!("---");
             }
             if list.patterns || list.all {
                 println!("PATTERNS:\n----------");
                 println!("  DEFAULT: {}", rusty_radamsa::patterns::DEFAULT_PATTERNS);
                 let mutations = rusty_radamsa::patterns::init_patterns();
-                mutations.iter().for_each(|x| {
+                for x in &mutations {
                     println!(
                         "    {0: <6} {1: <10}",
                         x.pattern_type.id(),
                         x.pattern_type.info()
                     );
-                });
+                }
                 println!("---");
             }
             if list.hashes || list.all {
                 println!("HASHES:\n----------");
                 println!("  DEFAULT: sha256");
                 let mutations = rusty_radamsa::digest::init_digests();
-                mutations
-                    .iter()
-                    .for_each(|x| println!("    {0: <6} {1: <10}", x.id, x.desc));
+                for x in &mutations {
+                    println!("    {0: <6} {1: <10}", x.id, x.desc);
+                }
                 println!("---");
             }
             if list.outputs || list.all {
                 println!("OUTPUTS:\n----------");
                 println!("  DEFAULT: -");
                 let mutations = rusty_radamsa::output::init_outputs();
-                mutations
-                    .iter()
-                    .for_each(|x| println!("    {0: <10} {1: <10}", x.id, x.desc));
+                for x in &mutations {
+                    println!("    {0: <10} {1: <10}", x.id, x.desc);
+                }
                 println!("---");
             }
         }
