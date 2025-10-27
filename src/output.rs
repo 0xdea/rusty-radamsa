@@ -231,6 +231,7 @@ pub enum OutputType {
     Template,
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn string_outputs(input: Vec<&str>, outputs: &mut [Output]) -> Vec<Output> {
     debug!("string_outputs");
     let mut applied_outputs: Vec<Output> = vec![];
@@ -247,12 +248,11 @@ pub fn string_outputs(input: Vec<&str>, outputs: &mut [Output]) -> Vec<Output> {
             match o.fd_type {
                 OutputType::Buffer | OutputType::Stdout => {
                     applied_outputs.push(o.clone());
-                    continue;
                 }
                 _ => {
                     let mut paths: Vec<String> = Vec::new();
                     while let Some(path) = iter.next() {
-                        paths.push(path.to_string());
+                        paths.push((*path).to_string());
                         if let Some(peek) = iter.peek() {
                             if outputs.iter().any(|x| x.id.eq(*peek)) {
                                 break;
@@ -271,26 +271,27 @@ pub fn string_outputs(input: Vec<&str>, outputs: &mut [Output]) -> Vec<Output> {
 }
 
 pub fn get_fd(
-    _type: &OutputType,
+    output_type: &OutputType,
     path: Option<String>,
     buf: &Option<&mut Box<[u8]>>,
 ) -> Result<Box<dyn GenericReader>, Box<dyn std::error::Error>> {
-    match *_type {
+    match *output_type {
         OutputType::Stdout => Ok(Box::new(io::Stdout::gen_open("w", None, None)?)),
         OutputType::File => Ok(Box::new(File::gen_open("w", path, None)?)),
-        OutputType::TCPServer => Ok(Box::new(TcpStream::gen_open("w", path, None)?)),
-        OutputType::TCPClient => Ok(Box::new(TcpStream::gen_open("w", path, None)?)),
-        OutputType::UDPServer => Ok(Box::new(UdpSocket::gen_open("w", path, None)?)),
-        OutputType::UDPClient => Ok(Box::new(UdpSocket::gen_open("w", path, None)?)),
+        OutputType::TCPServer | OutputType::TCPClient => {
+            Ok(Box::new(TcpStream::gen_open("w", path, None)?))
+        }
+        OutputType::UDPServer | OutputType::UDPClient => {
+            Ok(Box::new(UdpSocket::gen_open("w", path, None)?))
+        }
         OutputType::Buffer => {
             if let Some(ref buf) = buf {
-                let b: Box<[u8]> = (**buf).to_owned();
+                let b: Box<[u8]> = (**buf).clone();
                 Ok(Box::new(Cursor::<Box<[u8]>>::gen_open("w", None, Some(b))?))
             } else {
                 Err(Box::new(NoneString))
             }
         }
-        OutputType::Hashing => Err(Box::new(NoneString)),
-        OutputType::Template => Err(Box::new(NoneString)),
+        OutputType::Hashing | OutputType::Template => Err(Box::new(NoneString)),
     }
 }
