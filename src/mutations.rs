@@ -544,10 +544,10 @@ pub fn sed_num(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>
 
 // Byte-level Mutations
 
-pub fn sed_byte_drop(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_drop(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         new_data.remove(p);
@@ -555,10 +555,10 @@ pub fn sed_byte_drop(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     (Some(new_data), d)
 }
 
-pub fn sed_byte_inc(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_inc(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_add(1);
@@ -566,10 +566,10 @@ pub fn sed_byte_inc(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<V
     (Some(new_data), d)
 }
 
-pub fn sed_byte_dec(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_dec(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         new_data[p] = new_data[p].wrapping_sub(1);
@@ -577,10 +577,10 @@ pub fn sed_byte_dec(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<V
     (Some(new_data), d)
 }
 
-pub fn sed_byte_flip(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_flip(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let b = 1 << rng.gen_range(0..8);
         let p = rng.gen_range(0..data.len());
@@ -589,10 +589,10 @@ pub fn sed_byte_flip(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     (Some(new_data), d)
 }
 
-pub fn sed_byte_insert(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_insert(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     let b = rng.gen::<u8>();
     let p = rng.gen_range(0..=data.len());
     new_data.insert(p, b);
@@ -607,11 +607,11 @@ fn repeat_len(rng: &mut dyn RngCore) -> usize {
     rng.gen_range(0..limit)
 }
 
-pub fn sed_byte_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_repeat(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
     let n = repeat_len(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         let to_repeat = data[p];
@@ -623,10 +623,10 @@ pub fn sed_byte_repeat(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     (Some(new_data), d)
 }
 
-pub fn sed_byte_random(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_random(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let b = rng.gen::<u8>();
         let p = rng.gen_range(0..data.len());
@@ -635,10 +635,10 @@ pub fn sed_byte_random(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Optio
     (Some(new_data), d)
 }
 
-pub fn sed_byte_perm(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_byte_perm(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         let n = std::cmp::min(p + rng.gen_range(2..20), new_data.len());
@@ -647,10 +647,10 @@ pub fn sed_byte_perm(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<
     (Some(new_data), d)
 }
 
-pub fn sed_utf8_widen(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+pub fn sed_utf8_widen(rng: &mut dyn RngCore, maybe_data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     let d = rand_delta(rng);
-    let data = _data.expect("_data is not None");
-    let mut new_data = data.to_vec();
+    let data = maybe_data.expect("_data is not None");
+    let mut new_data = data.clone();
     if !data.is_empty() {
         let p = rng.gen_range(0..data.len());
         // assuming we hit a 6-bit ascii char, make it unnecessarily wide
