@@ -20,13 +20,14 @@ pub const DEFAULT_PATTERNS: &str = "od,nd=2,bu";
 pub type PatternFunc =
     fn(_gen: &mut Generator, _mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)>;
 
-#[derive(Debug, EnumIter, Clone, Copy, PartialEq)]
+#[derive(Debug, EnumIter, Clone, Copy, PartialEq, Eq)]
 pub enum PatternType {
     OnceDec,
     ManyDec,
     Burst,
 }
 
+#[allow(clippy::enum_glob_use)]
 impl PatternType {
     #[must_use]
     pub fn id(&self) -> String {
@@ -48,9 +49,9 @@ impl PatternType {
         };
         info.to_string()
     }
-    fn apply(&self, gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
+    fn apply(self, gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
         use PatternType::*;
-        match *self {
+        match self {
             OnceDec => pat_once_dec(gen, mutas),
             ManyDec => pat_many_dec(gen, mutas),
             Burst => pat_burst(gen, mutas),
@@ -91,7 +92,7 @@ impl Patterns {
         let rng = gen.rng.as_mut().unwrap();
         // weighted-permutation
         let mut total_priority = 0;
-        for pattern in self.patterns.iter() {
+        for pattern in &self.patterns {
             total_priority += pattern.priority;
         }
         let initial_priority = total_priority.rands(rng);
@@ -164,7 +165,9 @@ pub fn pat_once_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
     // Mutate once
     let (og_data, mut data) = mutate_once(gen, mutas)?;
     let mut new_data: Vec<u8> = vec![];
-    data.iter_mut().for_each(|x| new_data.append(x));
+    for x in &mut data {
+        new_data.append(x);
+    }
     Some((og_data, new_data))
 }
 
@@ -181,10 +184,14 @@ pub fn pat_many_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
     let mut new_data: Vec<u8> = vec![];
     match mut_data {
         Some(mut d) => {
-            d.iter_mut().for_each(|x| new_data.append(x));
+            for x in &mut d {
+                new_data.append(x);
+            }
         }
         None => {
-            data.iter_mut().for_each(|x| new_data.append(x));
+            for x in &mut data {
+                new_data.append(x);
+            }
         }
     }
     Some((og_data, new_data))
@@ -205,7 +212,9 @@ pub fn pat_burst(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]
         }
     }
     let mut new_data: Vec<u8> = vec![];
-    data.iter_mut().for_each(|x| new_data.append(x));
+    for x in &mut data {
+        new_data.append(x);
+    }
     Some((og_data, new_data))
 }
 
