@@ -665,6 +665,11 @@ pub fn sed_utf8_widen(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<
 }
 
 static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::new(|| {
+    enum Range {
+        Interval(u32, u32),
+        Scalar(u32),
+    }
+
     let mut ret = Vec::new();
     ret.push("\u{202E}".to_string().into_bytes()); // Right to Left Override
     ret.push("\u{202D}".to_string().into_bytes()); // Left to Right Override
@@ -703,11 +708,6 @@ static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::n
     ret.push(vec![251, 238, 40, 255]);
     ret.push(vec![132, 49, 149, 51]);
 
-    enum Range {
-        Interval(u32, u32),
-        Scalar(u32),
-    }
-
     let valid_points_and_ranges = vec![
         Range::Interval(0x0009, 0x000d),
         Range::Scalar(0x00a0),
@@ -740,7 +740,7 @@ static FUNNY_UNICODE: std::sync::LazyLock<Vec<Vec<u8>>> = std::sync::LazyLock::n
     ];
 
     // convert unicode code points and ranges to utf-8
-    for i in valid_points_and_ranges.iter() {
+    for i in &valid_points_and_ranges {
         match i {
             Range::Interval(lo, hi) => {
                 for p in *lo..=*hi {
@@ -801,10 +801,10 @@ pub fn sed_seq_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec
 
 // Lines
 
-fn get_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
+fn get_lines(data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
     let mut lines: Vec<Vec<u8>> = vec![];
     let mut prev_index = 0;
-    if let Some(data) = _data {
+    if let Some(data) = data {
         for (index, val) in data.iter().enumerate() {
             if *val == 10 {
                 let end = match index {
@@ -819,9 +819,9 @@ fn get_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
     Some(lines)
 }
 
-fn try_lines(_data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
-    _data?;
-    if let Some(lines) = get_lines(_data) {
+fn try_lines(data: Option<&Vec<u8>>) -> Option<Vec<Vec<u8>>> {
+    data?;
+    if let Some(lines) = get_lines(data) {
         if let Some(first_line) = lines.first() {
             // first line (start of block) looks binary
             if is_binarish(Some(first_line)) {
@@ -917,8 +917,8 @@ pub fn sed_fuse_this(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<V
     (None, 0)
 }
 
-pub fn sed_fuse_next(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_fuse_next(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         //split
         let (al1, al2) = data.split_at(data.len() / 2);
         let abl = crate::generic::list_fuse(rng, &al1.to_vec(), data);
@@ -945,8 +945,8 @@ pub fn sed_fuse_old(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Ve
 
 // Tree mutations
 
-pub fn sed_tree_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_tree_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDel);
         if new_data.is_some() {
             return (new_data, 1);
@@ -957,62 +957,55 @@ pub fn sed_tree_del(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<V
     (None, 0)
 }
 
-pub fn sed_tree_dup(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_tree_dup(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDup);
         if new_data.is_some() {
             return (new_data, 1);
-        } else {
-            return (new_data, -1);
         }
+        return (new_data, -1);
     }
     (None, 0)
 }
 
-pub fn sed_tree_stutter(
-    rng: &mut dyn RngCore,
-    _data: Option<&Vec<u8>>,
-) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_tree_stutter(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeStutter);
         if new_data.is_some() {
             return (new_data, 1);
-        } else {
-            return (new_data, -1);
         }
+        return (new_data, -1);
     }
     (None, 0)
 }
 
-pub fn sed_tree_swap1(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_tree_swap1(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         let new_data =
             crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapReplace);
         if new_data.is_some() {
             return (new_data, 1);
-        } else {
-            return (new_data, -1);
         }
+        return (new_data, -1);
     }
     (None, 0)
 }
 
-pub fn sed_tree_swap2(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn sed_tree_swap2(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapPair);
         if new_data.is_some() {
             return (new_data, 1);
-        } else {
-            return (new_data, -1);
         }
+        return (new_data, -1);
     }
     (None, 0)
 }
 
 mod ascii;
 
-pub fn ascii_bad(rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
-    if let Some(data) = _data {
+pub fn ascii_bad(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
+    if let Some(data) = data {
         match ascii::Ascii::parse(data) {
             Ok(mut cs) => {
                 cs.mutate(rng);
