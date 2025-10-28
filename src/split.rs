@@ -83,12 +83,12 @@ impl Node {
     }
 }
 
-fn check_delim_open(byte: &u8) -> Option<(u8, u8)> {
-    USUAL_DELIMS.into_iter().find(|&delim| delim.0 == *byte)
+fn check_delim_open(byte: u8) -> Option<(u8, u8)> {
+    USUAL_DELIMS.into_iter().find(|&delim| delim.0 == byte)
 }
 
-fn check_delim_close(byte: &u8) -> Option<(u8, u8)> {
-    USUAL_DELIMS.into_iter().find(|&delim| delim.1 == *byte)
+fn check_delim_close(byte: u8) -> Option<(u8, u8)> {
+    USUAL_DELIMS.into_iter().find(|&delim| delim.1 == byte)
 }
 
 const fn check_node(node: &Node, delim: Option<(u8, u8)>, index: usize) -> bool {
@@ -108,7 +108,7 @@ fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
     root_node.set_end_index(bytes.len());
 
     for (index, byte) in bytes.iter().enumerate() {
-        let close_delim = check_delim_close(byte);
+        let close_delim = check_delim_close(*byte);
         if close_delim.is_some()
             && stack
                 .last()
@@ -123,7 +123,7 @@ fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
             } else {
                 root_node.add_child(node);
             }
-        } else if let Some(delim) = check_delim_open(byte) {
+        } else if let Some(delim) = check_delim_open(*byte) {
             // push a new node onto the stack
             let node = Node::new(index, (delim.0, 0));
             stack.push(node);
