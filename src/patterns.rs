@@ -163,7 +163,7 @@ pub fn string_patterns(input: &str, patterns: &mut [Pattern]) -> Vec<PatternType
 
 pub fn pat_once_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
     // Mutate once
-    let (og_data, mut data) = mutate_once(gen, mutas)?;
+    let (og_data, mut data) = mutate_once(gen, mutas);
     let mut new_data: Vec<u8> = vec![];
     for x in &mut data {
         new_data.append(x);
@@ -174,11 +174,11 @@ pub fn pat_once_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
 /// 1 or more mutations
 pub fn pat_many_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
     // Mutate once
-    let (og_data, mut data) = mutate_once(gen, mutas)?;
+    let (og_data, mut data) = mutate_once(gen, mutas);
     let mut _count = 0_usize;
     let mut mut_data: Option<Vec<Vec<u8>>> = None;
     while rand_occurs(gen.rng.as_mut()?, REMUTATE_PROBABILITY) {
-        mut_data = mutate_multi(gen.rng.as_mut()?, &data, mutas);
+        mut_data = Some(mutate_multi(gen.rng.as_mut()?, &data, mutas));
         _count += 1;
     }
     let mut new_data: Vec<u8> = vec![];
@@ -198,13 +198,13 @@ pub fn pat_many_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
 }
 
 pub fn pat_burst(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
-    let (og_data, mut data) = mutate_once(gen, mutas)?;
+    let (og_data, mut data) = mutate_once(gen, mutas);
     let mut _count = 0_usize;
     let mut n = 1;
     loop {
         let p = rand_occurs(gen.rng.as_mut().unwrap(), REMUTATE_PROBABILITY);
         if p || n < 2 {
-            data = mutate_multi(gen.rng.as_mut().unwrap(), &data, mutas)?;
+            data = mutate_multi(gen.rng.as_mut().unwrap(), &data, mutas);
             n += 1;
             _count += 1;
         } else {
@@ -218,12 +218,8 @@ pub fn pat_burst(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]
     Some((og_data, new_data))
 }
 
-fn mutate_multi(
-    rng: &mut dyn RngCore,
-    data: &Vec<Vec<u8>>,
-    mutas: &mut Mutations,
-) -> Option<Vec<Vec<u8>>> {
-    let mut ip = crate::shared::INITIAL_IP.rands(rng);
+fn mutate_multi(rng: &mut dyn RngCore, data: &Vec<Vec<u8>>, mutas: &mut Mutations) -> Vec<Vec<u8>> {
+    let mut ip = INITIAL_IP.rands(rng);
     let mut output: Vec<Vec<u8>> = Vec::new();
     for data in data {
         let n = ip.rands(rng);
@@ -238,7 +234,7 @@ fn mutate_multi(
             output.push(data.clone());
         }
     }
-    Some(output)
+    output
 }
 
 #[allow(clippy::type_complexity)]
@@ -246,9 +242,9 @@ fn mutate_once(
     //_rng: &mut dyn RngCore,
     gen: &mut Generator,
     mutas: &mut Mutations,
-) -> Option<(Box<[u8]>, Vec<Vec<u8>>)> {
+) -> (Box<[u8]>, Vec<Vec<u8>>) {
     // initial inverse probability
-    let mut ip = crate::shared::INITIAL_IP.rands(gen.rng.as_mut().unwrap());
+    let mut ip = INITIAL_IP.rands(gen.rng.as_mut().unwrap());
     let mut og_output: Vec<u8> = Vec::new();
     let mut new_output: Vec<Vec<u8>> = Vec::new();
     while let (Some(ref data), last_block) = gen.next_block() {
@@ -265,7 +261,7 @@ fn mutate_once(
             new_output.push(data.clone());
         }
     }
-    Some((og_output.into_boxed_slice(), new_output))
+    (og_output.into_boxed_slice(), new_output)
 }
 
 #[cfg(test)]
