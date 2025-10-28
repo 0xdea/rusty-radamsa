@@ -184,6 +184,7 @@ fn pick_sublist<'a>(rng: &mut dyn RngCore, tree: &'a mut Node) -> Option<&'a mut
     tree.get_mut(*node_id)
 }
 
+#[allow(clippy::used_underscore_items)]
 fn _print_binary_tree(node: &Node, level: usize) {
     if node.start_index != node.end_index && node.delim != (0, 0) {
         debug!(
@@ -254,7 +255,7 @@ fn repeat_path(parent_node: &mut Node, child_index: usize, n_rep: usize) {
     }
 }
 
-pub(crate) fn sed_tree_op(
+pub fn sed_tree_op(
     rng: &mut dyn RngCore,
     data: &Vec<u8>,
     mutate_type: TreeMutate,
