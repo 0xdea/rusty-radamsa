@@ -946,7 +946,7 @@ pub fn sed_fuse_old(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Ve
 
 pub fn sed_tree_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
-        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDel);
+        let new_data = crate::split::sed_tree_op(rng, data, &crate::split::TreeMutate::TreeDel);
         if new_data.is_some() {
             return (new_data, 1);
         }
@@ -957,7 +957,7 @@ pub fn sed_tree_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Ve
 
 pub fn sed_tree_dup(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
-        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeDup);
+        let new_data = crate::split::sed_tree_op(rng, data, &crate::split::TreeMutate::TreeDup);
         if new_data.is_some() {
             return (new_data, 1);
         }
@@ -968,7 +968,7 @@ pub fn sed_tree_dup(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Ve
 
 pub fn sed_tree_stutter(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
-        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeStutter);
+        let new_data = crate::split::sed_tree_op(rng, data, &crate::split::TreeMutate::TreeStutter);
         if new_data.is_some() {
             return (new_data, 1);
         }
@@ -980,7 +980,7 @@ pub fn sed_tree_stutter(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Optio
 pub fn sed_tree_swap1(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
         let new_data =
-            crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapReplace);
+            crate::split::sed_tree_op(rng, data, &crate::split::TreeMutate::TreeSwapReplace);
         if new_data.is_some() {
             return (new_data, 1);
         }
@@ -991,7 +991,8 @@ pub fn sed_tree_swap1(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<
 
 pub fn sed_tree_swap2(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
-        let new_data = crate::split::sed_tree_op(rng, data, crate::split::TreeMutate::TreeSwapPair);
+        let new_data =
+            crate::split::sed_tree_op(rng, data, &crate::split::TreeMutate::TreeSwapPair);
         if new_data.is_some() {
             return (new_data, 1);
         }

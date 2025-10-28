@@ -258,7 +258,7 @@ fn repeat_path(parent_node: &mut Node, child_index: usize, n_rep: usize) {
 pub fn sed_tree_op(
     rng: &mut dyn RngCore,
     data: &Vec<u8>,
-    mutate_type: TreeMutate,
+    mutate_type: &TreeMutate,
 ) -> Option<Vec<u8>> {
     // parse data to tree if not binaryish
     let mut tree = partial_parse(data)?;
@@ -359,7 +359,7 @@ mod tests {
                 .as_bytes()
                 .to_vec();
         let data1 = Vec::from("{{\"some\": \"json\"},{\"some\": \"some text here\"}\n".as_bytes());
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeDup).unwrap();
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeDup).unwrap();
         println_lossy(&new_data);
         assert_eq!(expected, new_data);
     }
@@ -370,7 +370,7 @@ mod tests {
         let expected = "<note>  <to>Tove</to> <from>Jani</from> <heading>Reminder</heading> <body>Don't forget me this weekend!</body> </note>\n".as_bytes().to_vec();
         let data2 = Vec::from("<note>  <to>Tove</to> <from>Jani</from> <heading>Reminder</heading> <body>Don't forget me this weekend!</body> </note>\n".as_bytes());
         let mut rng = ChaCha20Rng::seed_from_u64(43);
-        let new_data = sed_tree_op(&mut rng, &data2, TreeMutate::TreeSwapPair).unwrap();
+        let new_data = sed_tree_op(&mut rng, &data2, &TreeMutate::TreeSwapPair).unwrap();
         println_lossy(&new_data);
         assert_eq!(expected, new_data);
     }
@@ -383,7 +383,7 @@ mod tests {
             .as_bytes()
             .to_vec();
         let data1 = Vec::from("{{\"some\": \"json\"},{\"some\": \"some text here\"}}\n".as_bytes());
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeDel).unwrap();
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeDel).unwrap();
         println_lossy(&new_data);
         assert_eq!(expected, new_data);
     }
@@ -394,7 +394,7 @@ mod tests {
         // json
         let expected = "{{\"some\": {{\"some\": \"json\"},{\"some\": \"some text here\"}}},{\"some\": \"some text here\"}}\n".as_bytes().to_vec();
         let data1 = Vec::from("{{\"some\": \"json\"},{\"some\": \"some text here\"}}\n".as_bytes());
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeSwapReplace).unwrap();
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeSwapReplace).unwrap();
         println_lossy(&new_data);
         assert_eq!(expected, new_data);
     }
@@ -405,7 +405,7 @@ mod tests {
         // json
         let expected = r#"[{"some": "json"},{"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": {"some": "some text here"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]"#.as_bytes().to_vec();
         let data1 = Vec::from("[{\"some\": \"json\"},{\"some\": \"some text here\"}]".as_bytes());
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeStutter).unwrap();
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeStutter).unwrap();
         println_lossy(&new_data);
         assert_eq!(expected, new_data);
     }
@@ -414,15 +414,15 @@ mod tests {
     fn test_tree_empty() {
         let mut rng = ChaCha20Rng::seed_from_u64(1_674_713_045);
         let data1: Vec<u8> = vec![];
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeStutter);
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeStutter);
         assert_eq!(None, new_data);
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeSwapReplace);
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeSwapReplace);
         assert_eq!(None, new_data);
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeDel);
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeDel);
         assert_eq!(None, new_data);
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeSwapPair);
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeSwapPair);
         assert_eq!(None, new_data);
-        let new_data = sed_tree_op(&mut rng, &data1, TreeMutate::TreeDup);
+        let new_data = sed_tree_op(&mut rng, &data1, &TreeMutate::TreeDup);
         assert_eq!(None, new_data);
     }
 }
