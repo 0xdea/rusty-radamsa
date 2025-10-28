@@ -55,15 +55,14 @@ impl Node {
     const fn set_end_index(&mut self, end: usize) {
         self.end_index = end;
     }
-    fn get_mut(&mut self, node_id: ProcessUniqueId) -> Option<&mut Node> {
+    fn get_mut(&mut self, node_id: ProcessUniqueId) -> Option<&mut Self> {
         for child in &mut self.children {
             if child.id == node_id {
                 return Some(child);
-            } else {
-                let target = child.get_mut(node_id);
-                if target.is_some() {
-                    return target;
-                }
+            }
+            let target = child.get_mut(node_id);
+            if target.is_some() {
+                return target;
             }
         }
 
