@@ -227,7 +227,7 @@ impl Radamsa {
                     None => false,
                 };
                 if cs_exists {
-                    if p >= crate::shared::MAX_CHECKSUM_RETRY {
+                    if p >= shared::MAX_CHECKSUM_RETRY {
                         error!("max unique reached");
                         // Make sure to return something
                         out_len = self.outputs.mux_output(&mut_data, &mut buffer)?;
@@ -278,7 +278,7 @@ impl Radamsa {
             self.generators.default_generators();
         } else {
             self.generators.generator_nodes =
-                crate::generators::string_generators(gen, &mut self.generators.generators);
+                generators::string_generators(gen, &mut self.generators.generators);
         }
 
         if self.generators.generator_nodes.is_empty() {
@@ -303,7 +303,7 @@ impl Radamsa {
             self.mutations.default_mutations();
         } else {
             self.mutations.mutator_nodes =
-                crate::mutations::string_mutators(muta, &mut self.mutations.mutators);
+                mutations::string_mutators(muta, &mut self.mutations.mutators);
         }
         if self.mutations.mutator_nodes.is_empty() {
             Err(Box::new(BadInput))
@@ -327,7 +327,7 @@ impl Radamsa {
             self.patterns.default_patterns();
         } else {
             self.patterns.pattern_nodes =
-                crate::patterns::string_patterns(pat, &mut self.patterns.patterns);
+                patterns::string_patterns(pat, &mut self.patterns.patterns);
         }
         if self.patterns.pattern_nodes.is_empty() {
             Err(Box::new(BadInput))
@@ -351,7 +351,7 @@ impl Radamsa {
         if out == vec!["default"] {
             self.outputs.default_outputs();
         } else {
-            self.outputs.outputs = crate::output::string_outputs(out, &mut self.outputs.outputs);
+            self.outputs.outputs = output::string_outputs(out, &mut self.outputs.outputs);
         }
         if self.outputs.outputs.is_empty() {
             Err(Box::new(BadInput))
@@ -372,7 +372,7 @@ impl Radamsa {
     /// ```
     pub fn set_checksum(&mut self, chk: &str) -> Result<(), Box<dyn std::error::Error>> {
         if chk != "default" {
-            if let Some(digest) = crate::digest::string_digest(chk, &mut digest::init_digests()) {
+            if let Some(digest) = digest::string_digest(chk, &mut digest::init_digests()) {
                 self.checksums.checksum = digest;
                 return Ok(());
             }
@@ -645,8 +645,8 @@ mod tests {
         use std::boxed::Box;
         use std::thread;
         let _t = thread::spawn(move || {
-            let mut fd: Box<dyn crate::generators::GenericReader> = crate::output::get_fd(
-                &crate::output::OutputType::TCPClient,
+            let mut fd: Box<dyn generators::GenericReader> = output::get_fd(
+                &output::OutputType::TCPClient,
                 Some("127.0.0.1:8000".to_string()),
                 &None,
             )

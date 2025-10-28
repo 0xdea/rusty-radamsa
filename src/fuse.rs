@@ -3,9 +3,7 @@ use rand::{Rng, RngCore};
 use crate::shared::*;
 
 /// connect prefix of al somewhere to bl, and make sure that (list-fuse l l) != l
-pub fn fuse<
-    T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
->(
+pub fn fuse<T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash + Eq + Ord>(
     rng: &mut dyn RngCore,
     lista: &Vec<T>,
     listb: &Vec<T>,
@@ -54,7 +52,7 @@ fn alernate_suffixes<'a, T: Clone>(
 
 /// avoid usually jumping into the same place (ft mutation, small samples, bad luck).
 /// if the inputs happen to be equal by alternating possible jump and land positions.
-fn initial_suffixes<'a, T: Clone + std::cmp::PartialEq>(
+fn initial_suffixes<'a, T: Clone + PartialEq>(
     rng: &mut dyn RngCore,
     lista: &'a Vec<T>,
     listb: &'a Vec<T>,
@@ -66,10 +64,7 @@ fn initial_suffixes<'a, T: Clone + std::cmp::PartialEq>(
     (suffixes(rng, lista), suffixes(rng, listb))
 }
 
-fn suffixes<'a, T: Clone + std::cmp::PartialEq>(
-    _rng: &mut dyn RngCore,
-    list: &'a [T],
-) -> Vec<&'a [T]> {
+fn suffixes<'a, T: Clone + PartialEq>(_rng: &mut dyn RngCore, list: &'a [T]) -> Vec<&'a [T]> {
     let mut new_list: Vec<&[T]> = Vec::new();
     for (i, _val) in list.iter().enumerate() {
         let sub_list: &[T] = &list[i..];
@@ -124,9 +119,7 @@ fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash +
 }
 
 #[allow(clippy::cast_possible_wrap)]
-fn find_jump_points<
-    T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
->(
+fn find_jump_points<T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash + Eq + Ord>(
     rng: &mut dyn RngCore,
     lista: &Vec<T>,
     listb: &Vec<T>,
@@ -138,26 +131,26 @@ fn find_jump_points<
     }
     loop {
         if fuel < 0 {
-            match any_position_pair(rng, &mut la, &mut lb) {
-                Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                None => return (lista.clone(), listb.clone()),
-            }
+            return match any_position_pair(rng, &mut la, &mut lb) {
+                Some((from, to)) => (from.to_vec(), to.to_vec()),
+                None => (lista.clone(), listb.clone()),
+            };
         }
 
         let x = SEARCH_STOP_IP.rands(rng);
         if x == 0 {
-            match any_position_pair(rng, &mut la, &mut lb) {
-                Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                None => return (lista.clone(), listb.clone()),
-            }
+            return match any_position_pair(rng, &mut la, &mut lb) {
+                Some((from, to)) => (from.to_vec(), to.to_vec()),
+                None => (lista.clone(), listb.clone()),
+            };
         }
 
         let (nodea, nodeb) = split_prefixes(&la, &lb);
         if nodea.is_empty() || nodeb.is_empty() {
-            match any_position_pair(rng, &mut la, &mut lb) {
-                Some((from, to)) => return (from.to_vec(), to.to_vec()),
-                None => return (lista.clone(), listb.clone()),
-            }
+            return match any_position_pair(rng, &mut la, &mut lb) {
+                Some((from, to)) => (from.to_vec(), to.to_vec()),
+                None => (lista.clone(), listb.clone()),
+            };
         }
 
         la = nodea;

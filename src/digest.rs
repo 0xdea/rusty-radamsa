@@ -204,10 +204,7 @@ impl Checksums {
         digest.finalized()
     }
 
-    pub fn get_crc_blocks<T: CsDigestB>(
-        digest: &mut T,
-        data: &[std::boxed::Box<[u8]>],
-    ) -> Option<Box<[u8]>> {
+    pub fn get_crc_blocks<T: CsDigestB>(digest: &mut T, data: &[Box<[u8]>]) -> Option<Box<[u8]>> {
         for block in data {
             digest.updated(block);
         }
@@ -251,7 +248,7 @@ impl Checksums {
     #[must_use]
     pub fn digest_blocks(&self, data: Option<&Vec<Box<[u8]>>>) -> Option<Box<[u8]>> {
         if let Some(data) = data {
-            match &self.checksum.hash_type {
+            return match &self.checksum.hash_type {
                 HashType::Sha | HashType::Sha256 | HashType::Sha512 => {
                     let digest: Option<Box<dyn CsDigest>> = match &self.checksum.hash_type {
                         HashType::Sha | HashType::Sha256 => {
@@ -265,24 +262,24 @@ impl Checksums {
                     for block in data {
                         d.updated(block);
                     }
-                    return d.finalized();
+                    d.finalized()
                 }
                 HashType::Crc32 => {
                     let cs = Crc::<u32>::new(&CRC_32_CKSUM);
                     let mut d = cs.digest();
-                    return Self::get_crc_blocks(&mut d, data);
+                    Self::get_crc_blocks(&mut d, data)
                 }
                 HashType::Crc | HashType::Crc64 => {
                     let cs = Crc::<u64>::new(&CRC_64_REDIS);
                     let mut d = cs.digest();
-                    return Self::get_crc_blocks(&mut d, data);
+                    Self::get_crc_blocks(&mut d, data)
                 }
                 HashType::Crc82 => {
                     let cs = Crc::<u128>::new(&CRC_82_DARC);
                     let mut d = cs.digest();
-                    return Self::get_crc_blocks(&mut d, data);
+                    Self::get_crc_blocks(&mut d, data)
                 }
-            }
+            };
         }
         None
     }

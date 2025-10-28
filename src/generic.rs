@@ -8,7 +8,7 @@ use rand::{seq::SliceRandom, RngCore};
 use crate::shared::*;
 
 /// delete a sequence of things
-pub fn list_del_seq<T: std::clone::Clone>(rng: &mut dyn RngCore, data: Vec<T>) -> Vec<T> {
+pub fn list_del_seq<T: Clone>(rng: &mut dyn RngCore, data: Vec<T>) -> Vec<T> {
     if data.len() < 2 {
         data
     } else {
@@ -159,9 +159,7 @@ pub fn list_replace<T: Clone>(rng: &mut dyn RngCore, data: Vec<T>) -> Vec<T> {
 }
 
 /// connect prefix of al somewhere to bl, and make sure that (list-fuse l l) != l
-pub fn list_fuse<
-    T: Clone + std::cmp::PartialEq + std::fmt::Debug + std::hash::Hash + std::cmp::Eq + std::cmp::Ord,
->(
+pub fn list_fuse<T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash + Eq + Ord>(
     rng: &mut dyn RngCore,
     lista: &Vec<T>,
     listb: &Vec<T>,

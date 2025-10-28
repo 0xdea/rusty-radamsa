@@ -48,7 +48,7 @@ struct Cli {
     delay: usize,
     // TODO: metadata
     // TODO: recursive
-    /// take only first n bytes of each output (mainly intended for UDP).]
+    /// take only first n bytes of each output (mainly intended for UDP)
     /// if truncate is zero, no truncation happens.
     #[arg(short = 'T', long, default_value_t = 0)]
     truncate: usize,

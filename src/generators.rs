@@ -510,7 +510,7 @@ impl GenericReader for UdpSocket {
                     "r" => {
                         let socket = Self::bind(bind_addr)?;
                         let duration = std::time::Duration::new(10, 0);
-                        let dur = std::option::Option::Some(duration);
+                        let dur = Some(duration);
                         socket.set_read_timeout(dur)?;
                         Ok(socket)
                     }

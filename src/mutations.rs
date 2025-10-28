@@ -444,12 +444,10 @@ fn rand_delta_up(rng: &mut dyn RngCore) -> isize {
 fn adjust_priority(pri: usize, delta: isize) -> usize {
     match delta {
         0 => pri,
-        _ => {
-            (std::cmp::max(
-                MIN_SCORE as isize,
-                std::cmp::max(MAX_SCORE as isize, pri as isize + delta),
-            )) as usize
-        }
+        _ => std::cmp::max(
+            MIN_SCORE as isize,
+            std::cmp::max(MAX_SCORE as isize, pri as isize + delta),
+        ) as usize,
     }
 }
 
@@ -480,7 +478,7 @@ fn get_num(data: Option<&[u8]>) -> (Option<i256>, Option<usize>) {
                 n = num;
             } else {
                 n += num
-                    .overflowing_mul(i256::from((10_usize.overflowing_pow(pos as u32).0) as i128))
+                    .overflowing_mul(i256::from(10_usize.overflowing_pow(pos as u32).0 as i128))
                     .0;
             }
         }
@@ -801,7 +799,7 @@ pub fn sed_seq_del(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec
 
 // Lines
 
-fn get_lines(data: Option<&Vec<u8>>) -> std::vec::Vec<std::vec::Vec<u8>> {
+fn get_lines(data: Option<&Vec<u8>>) -> Vec<Vec<u8>> {
     let mut lines: Vec<Vec<u8>> = vec![];
     let mut prev_index = 0;
     if let Some(data) = data {
@@ -1005,15 +1003,13 @@ mod ascii;
 
 pub fn ascii_bad(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option<Vec<u8>>, isize) {
     if let Some(data) = data {
-        match ascii::Ascii::parse(data) {
+        return match ascii::Ascii::parse(data) {
             Ok(mut cs) => {
                 cs.mutate(rng);
-                return (Some(cs.unlex()), rand_delta_up(rng));
+                (Some(cs.unlex()), rand_delta_up(rng))
             }
-            Err(()) => {
-                return (Some(data.clone()), -1);
-            }
-        }
+            Err(()) => (Some(data.clone()), -1),
+        };
     }
     (None, 0)
 }
