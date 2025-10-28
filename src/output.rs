@@ -48,12 +48,15 @@ impl Outputs {
             resize: false,
         }
     }
+
     pub fn init(&mut self) {
         self.outputs = init_outputs();
     }
+
     pub fn default_outputs(&mut self) {
         self.outputs = string_outputs(vec!["buffer", DEFAULT_OUTPUTS], &mut self.outputs);
     }
+
     pub fn init_pipes(
         &mut self,
         buffer: &Option<&mut Box<[u8]>>,
@@ -84,6 +87,7 @@ impl Outputs {
         self.outputs = new_outputs;
         Ok(())
     }
+
     pub fn mux_output(
         &mut self,
         data: &[u8],
@@ -177,6 +181,7 @@ impl Output {
             paths: None,
         }
     }
+
     pub fn set_fd(
         &mut self,
         path: Option<String>,
@@ -187,6 +192,7 @@ impl Output {
         self.fd = Some(fd);
         Ok(())
     }
+
     pub fn write(&mut self, data: &[u8]) -> Result<usize, Box<dyn std::error::Error>> {
         if let Some(ref mut fd) = self.fd {
             fd.gen_write(data, 0)
@@ -195,6 +201,7 @@ impl Output {
             Ok(0)
         }
     }
+
     pub fn flush_bvecs(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         if let Some(ref mut fd) = self.fd {
             fd.gen_flush()
@@ -203,6 +210,7 @@ impl Output {
             Ok(0)
         }
     }
+
     pub fn write_all(&mut self, data: &Vec<Vec<u8>>) -> Result<(), Box<dyn std::error::Error>> {
         match self.fd {
             Some(ref mut fd) => {

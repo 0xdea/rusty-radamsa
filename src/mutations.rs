@@ -239,6 +239,7 @@ impl MutaType {
             Nop => nop(rng, data),
         }
     }
+
     #[must_use]
     pub fn id_to_mutatype(id: &str) -> Option<Self> {
         Self::iter().find(|&muta| muta.id() == id)
@@ -298,10 +299,12 @@ impl Mutator {
             delta: 0,
         }
     }
+
     #[must_use]
     pub fn id(&self) -> String {
         self.muta.id()
     }
+
     #[must_use]
     pub fn info(&self) -> String {
         self.muta.info()
@@ -318,9 +321,11 @@ impl Mutations {
             mutas: None,
         }
     }
+
     pub fn init(&mut self) {
         self.mutators = init_mutations();
     }
+
     pub fn default_mutations(&mut self) {
         self.mutator_nodes = string_mutators(DEFAULT_MUTATIONS, &mut self.mutators);
     }
@@ -1023,7 +1028,6 @@ pub fn nop(_rng: &mut dyn RngCore, _data: Option<&Vec<u8>>) -> (Option<Vec<u8>>,
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use std::boxed::Box;
 
     use print_bytes::println_lossy;
@@ -1060,6 +1064,7 @@ mod tests {
         let d3 = data3.as_ref().unwrap();
         assert_eq!(std::str::from_utf8(d3), Ok("1 2 3 4 -1 6 7\n"));
     }
+
     #[test]
     fn test_sed_num() {
         let num_1 = Vec::from(b"1 2 3 4 5 6 7 8 9 10 11 12\n"); // not-binary

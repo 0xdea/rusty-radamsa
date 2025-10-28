@@ -161,7 +161,6 @@ fn find_jump_points<T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash + E
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;
 

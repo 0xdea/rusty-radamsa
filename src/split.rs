@@ -52,9 +52,11 @@ impl Node {
             debug!("Max levels reached");
         }
     }
+
     const fn set_end_index(&mut self, end: usize) {
         self.end_index = end;
     }
+
     fn get_mut(&mut self, node_id: ProcessUniqueId) -> Option<&mut Self> {
         for child in &mut self.children {
             if child.id == node_id {
@@ -65,7 +67,6 @@ impl Node {
                 return target;
             }
         }
-
         None
     }
 
@@ -150,6 +151,7 @@ fn partial_parse(data: &Vec<u8>) -> Option<Node> {
         Some(build_binary_tree(data))
     }
 }
+
 fn sublist(node: &Node) -> Vec<ProcessUniqueId> {
     let mut id_list: Vec<ProcessUniqueId> = Vec::new();
     // ignore root node and empty pairs
@@ -342,7 +344,6 @@ pub fn sed_tree_op(
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use print_bytes::println_lossy;
     use rand::SeedableRng;
     use rand_chacha::ChaCha20Rng;

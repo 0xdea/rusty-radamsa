@@ -30,6 +30,7 @@ pub(crate) fn time_seed() -> u64 {
         .expect("Duration since UNIX_EPOCH failed");
     d.as_secs()
 }
+
 pub trait Rands {
     #[must_use]
     fn rands(&self, _rng: &mut dyn RngCore) -> Self;
@@ -55,6 +56,7 @@ impl Rands for usize {
         }
         rng.gen_range(0..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -77,6 +79,7 @@ impl Rands for u64 {
         }
         rng.gen_range(0..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -99,6 +102,7 @@ impl Rands for u128 {
         }
         rng.gen_range(0..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -122,6 +126,7 @@ impl Rands for isize {
         }
         rng.gen_range(-*self..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -145,6 +150,7 @@ impl Rands for i128 {
         }
         rng.gen_range(-*self..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -192,6 +198,7 @@ impl Rands for i64 {
         }
         rng.gen_range(-*self..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -221,6 +228,7 @@ impl Rands for i256 {
             rng.gen_range(self.as_i128().overflowing_neg().0..self.as_i128().overflowing_abs().0),
         )
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = self.rands(rng);
@@ -242,6 +250,7 @@ impl Rands for u256 {
         }
         Self::from(rng.gen_range(0..self.as_u128()))
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = self.rands(rng);

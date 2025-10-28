@@ -43,6 +43,7 @@ pub const DEFAULT_GENERATORS: &str = "random,buffer=10000,file=1000,jump=200,std
 pub const STREAM_SEED_BASE: u128 = 100_000_000_000_000_000_000;
 pub const JUMPSTREAM_SEED_BASE: u128 = 0x000f_ffff_ffff;
 pub const BUFFER_SEED_BASE: u128 = 42;
+
 #[derive(Debug)]
 pub struct Generators {
     pub generators: Vec<Generator>,
@@ -63,9 +64,11 @@ impl Generators {
             generator_nodes: Vec::new(),
         }
     }
+
     pub fn init(&mut self) {
         self.generators = init_generators();
     }
+
     pub fn default_generators(&mut self) {
         self.generator_nodes = string_generators(DEFAULT_GENERATORS, &mut self.generators);
     }
@@ -162,6 +165,7 @@ impl GenType {
         };
         name.to_string()
     }
+
     #[must_use]
     pub fn info(&self) -> String {
         use GenType::*;
@@ -177,6 +181,7 @@ impl GenType {
         };
         desc.to_string()
     }
+
     pub fn init(
         &self,
         rng: &mut impl Rng,
@@ -210,6 +215,7 @@ impl GenType {
             Self::Jump | Self::Pcapng => Err(Box::new(NoneString)),
         }
     }
+
     #[must_use]
     pub const fn seed(&self) -> u128 {
         use GenType::*;
@@ -273,6 +279,7 @@ impl Generator {
             rng: None,
         }
     }
+
     #[allow(clippy::cast_possible_truncation)]
     pub fn init(&mut self, rng: &mut dyn RngCore) {
         self.seed = self.seed_base.rands(rng) as u64;
@@ -282,6 +289,7 @@ impl Generator {
             fd.gen_seek(SeekFrom::Start(0)).ok();
         }
     }
+
     pub fn set_fd(
         &mut self,
         path: Option<String>,
@@ -293,6 +301,7 @@ impl Generator {
 
         Ok(())
     }
+
     pub fn next_block(&mut self) -> (Option<Vec<u8>>, bool) {
         let mut buf = vec![0u8; self.block_size];
         if let Some(ref mut fd) = self.fd {
@@ -319,18 +328,23 @@ pub trait GenericReader {
     ) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized;
+
     fn gen_read(
         &mut self,
         _buf: &mut Vec<u8>,
         _offset: usize,
     ) -> Result<usize, Box<dyn std::error::Error>>;
+
     fn gen_write(
         &mut self,
         _buf: &[u8],
         _offset: usize,
     ) -> Result<usize, Box<dyn std::error::Error>>;
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>>;
+
     fn as_any(&self) -> &dyn std::any::Any;
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>>;
 }
 
@@ -347,6 +361,7 @@ impl GenericReader for File {
             _ => Err(Box::new(NoneString)),
         }
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -354,6 +369,7 @@ impl GenericReader for File {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(self.read(buf)?)
     }
+
     fn gen_write(
         &mut self,
         buf: &[u8],
@@ -361,12 +377,15 @@ impl GenericReader for File {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(self.write(buf)?)
     }
+
     fn gen_seek(&mut self, pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(self.seek(pos)?)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -380,6 +399,7 @@ impl GenericReader for io::Stdin {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(io::stdin())
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -387,6 +407,7 @@ impl GenericReader for io::Stdin {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(self.lock().read(buf)?)
     }
+
     fn gen_write(
         &mut self,
         _buf: &[u8],
@@ -394,12 +415,15 @@ impl GenericReader for io::Stdin {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Err(Box::new(NoWrite))
     }
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -413,6 +437,7 @@ impl GenericReader for io::Stdout {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(io::stdout())
     }
+
     fn gen_read(
         &mut self,
         _buf: &mut Vec<u8>,
@@ -420,6 +445,7 @@ impl GenericReader for io::Stdout {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Err(Box::new(NoWrite))
     }
+
     fn gen_write(
         &mut self,
         buf: &[u8],
@@ -428,12 +454,15 @@ impl GenericReader for io::Stdout {
         println_lossy(buf);
         Ok(buf.len())
     }
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -465,6 +494,7 @@ impl GenericReader for TcpStream {
             _ => Err(Box::new(NoneString)),
         }
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -473,6 +503,7 @@ impl GenericReader for TcpStream {
         debug!("TCP Gen Read");
         Ok(self.read(buf)?)
     }
+
     fn gen_write(
         &mut self,
         buf: &[u8],
@@ -483,12 +514,15 @@ impl GenericReader for TcpStream {
         self.flush()?;
         Ok(len)
     }
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -525,6 +559,7 @@ impl GenericReader for UdpSocket {
             _ => Err(Box::new(NoneString)),
         }
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -560,6 +595,7 @@ impl GenericReader for UdpSocket {
         }
         Ok(total_len)
     }
+
     fn gen_write(
         &mut self,
         buf: &[u8],
@@ -584,12 +620,15 @@ impl GenericReader for UdpSocket {
         }
         Ok(buf.len())
     }
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -603,6 +642,7 @@ impl GenericReader for Cursor<Box<[u8]>> {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(buf.map_or_else(|| Err(Box::new(NoWrite)), |b| Ok(Self::new(b)))?)
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -610,6 +650,7 @@ impl GenericReader for Cursor<Box<[u8]>> {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(self.read(buf)?)
     }
+
     fn gen_write(
         &mut self,
         buf: &[u8],
@@ -618,9 +659,11 @@ impl GenericReader for Cursor<Box<[u8]>> {
         let len = self.write(buf)?;
         Ok(len)
     }
+
     fn gen_seek(&mut self, pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(self.seek(pos)?)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
@@ -644,6 +687,7 @@ impl GenericReader for RandomStream {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Err(Box::new(NoneString))
     }
+
     fn gen_read(
         &mut self,
         buf: &mut Vec<u8>,
@@ -658,6 +702,7 @@ impl GenericReader for RandomStream {
         buf.copy_from_slice(&block);
         Ok(buf.len())
     }
+
     fn gen_write(
         &mut self,
         _buf: &[u8],
@@ -665,12 +710,15 @@ impl GenericReader for RandomStream {
     ) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn gen_seek(&mut self, _pos: SeekFrom) -> Result<u64, Box<dyn std::error::Error>> {
         Ok(0)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
     fn gen_flush(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
         Ok(0)
     }
@@ -861,6 +909,7 @@ mod tests {
         let n = read_byte_vector(&mut fd.unwrap(), &mut buf, 0).ok();
         assert_eq!(n, Some(10));
     }
+
     #[test]
     fn test_read_byte_vector_buff_eof() {
         let mut buf = Box::from(vec![0u8; 40]);
@@ -870,6 +919,7 @@ mod tests {
         let n = read_byte_vector(&mut fd.unwrap(), &mut buf, 0).ok();
         assert_eq!(n, Some(30));
     }
+
     #[test]
     #[allow(clippy::cast_possible_truncation)]
     fn test_next_block() {
@@ -886,6 +936,7 @@ mod tests {
         }
         assert_eq!(total_len, file_len);
     }
+
     #[test]
     #[allow(clippy::cast_possible_truncation)]
     fn test_generators() {

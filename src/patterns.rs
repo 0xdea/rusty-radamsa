@@ -39,6 +39,7 @@ impl PatternType {
         };
         id.to_string()
     }
+
     #[must_use]
     pub fn info(&self) -> String {
         use PatternType::*;
@@ -49,6 +50,7 @@ impl PatternType {
         };
         info.to_string()
     }
+
     fn apply(self, gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
         use PatternType::*;
         match self {
@@ -76,12 +78,15 @@ impl Patterns {
             pattern_nodes: Vec::new(),
         }
     }
+
     pub fn init(&mut self) {
         self.patterns = init_patterns();
     }
+
     pub fn default_patterns(&mut self) {
         self.pattern_nodes = string_patterns(DEFAULT_PATTERNS, &mut self.patterns);
     }
+
     /// Will choose the top priority Pattern. Pattern will execute and return mutator content.
     pub fn mux_patterns(
         &mut self,
