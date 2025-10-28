@@ -5,7 +5,7 @@ Radamsa ported to rust lang
 Rusty Radamsa is a general purpose fuzzer. It modifies given sample data
 in ways, which might expose errors in programs intended to process
 the data. For more information, read the fine manual page, or visit
-https://gitlab.com/akihe/radamsa.
+<https://gitlab.com/akihe/radamsa>.
 
 Rusty Radamsa was written by Amanda Rousseau (malwareunicorn), based on Radamsa by Aki Helin, initially at OUSPG.
 
@@ -299,7 +299,7 @@ rustyradamsa.exe -m num -g udp 0.0.0.0:8888 -v
 
 This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
 
 When you submit a pull request, a CLA bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions

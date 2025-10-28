@@ -1,4 +1,3 @@
-extern crate rusty_radamsa;
 use print_bytes::println_lossy;
 
 fn main() {

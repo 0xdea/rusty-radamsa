@@ -1,4 +1,3 @@
-extern crate rusty_radamsa;
 use std::boxed::Box;
 use std::thread;
 
