@@ -101,7 +101,7 @@ const fn check_node(node: &Node, delim: Option<(u8, u8)>, index: usize) -> bool 
 }
 
 #[allow(clippy::unnecessary_unwrap)]
-fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
+fn build_binary_tree(bytes: &[u8]) -> Node {
     // use a stack to keep track of the nodes
     let mut stack: Vec<Node> = Vec::new();
     let mut root_node = Node::new(0, (0, 0));
@@ -140,14 +140,14 @@ fn build_binary_tree(bytes: &[u8]) -> Option<Node> {
     }
     // add whats left
     root_node.children.append(&mut stack);
-    Some(root_node)
+    root_node
 }
 
 fn partial_parse(data: &Vec<u8>) -> Option<Node> {
     if is_binarish(Some(data)) {
         None
     } else {
-        build_binary_tree(data)
+        Some(build_binary_tree(data))
     }
 }
 fn sublist(node: &Node) -> Vec<ProcessUniqueId> {
@@ -222,7 +222,7 @@ fn check_separator(start_index: usize, data: &[u8]) -> bool {
     false
 }
 
-fn tree_to_vec(tree: &Node, data: &Vec<u8>) -> Option<Vec<u8>> {
+fn tree_to_vec(tree: &Node, data: &Vec<u8>) -> Vec<u8> {
     let mut new_data = Vec::new();
     let mut og_data = data[tree.start_index..tree.end_index].to_vec();
     if tree.children.is_empty() {
@@ -235,15 +235,14 @@ fn tree_to_vec(tree: &Node, data: &Vec<u8>) -> Option<Vec<u8>> {
             new_data.push(tree.delim.0);
         }
         for child in &tree.children {
-            if let Some(mut child_data) = tree_to_vec(child, data) {
-                new_data.append(&mut child_data);
-            }
+            let mut child_data = tree_to_vec(child, data);
+            new_data.append(&mut child_data);
         }
         if tree.delim != (0, 0) && tree.delim.1 != 0 {
             new_data.push(tree.delim.1);
         }
     }
-    Some(new_data)
+    new_data
 }
 
 fn repeat_path(parent_node: &mut Node, child_index: usize, n_rep: usize) {
@@ -337,7 +336,7 @@ pub fn sed_tree_op(
             *toswap_og = old_node;
         }
     }
-    let new_data = tree_to_vec(&tree, data)?;
+    let new_data = tree_to_vec(&tree, data);
     Some(new_data)
 }
 
