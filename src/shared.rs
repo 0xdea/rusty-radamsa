@@ -296,17 +296,21 @@ pub(crate) fn mutate_num(rng: &mut dyn RngCore, num: i256) -> i256 {
         1 => num.overflowing_sub(I256::from(1)).0,
         2 => I256::from(0),
         3 => I256::from(1),
-        4..=6 => *rand_elem(rng, &nums).unwrap_or(&I256::from(0)),
+        4..=6 => rand_elem(rng, &nums)
+            .copied()
+            .unwrap_or_else(|| I256::from(0)),
         7 => {
             rand_elem(rng, &nums)
-                .unwrap_or(&I256::from(0))
+                .copied()
+                .unwrap_or_else(|| I256::from(0))
                 .rands(rng)
                 .overflowing_add(num)
                 .0
         }
         8 => {
             rand_elem(rng, &nums)
-                .unwrap_or(&I256::from(0))
+                .copied()
+                .unwrap_or_else(|| I256::from(0))
                 .rands(rng)
                 .overflowing_sub(num)
                 .0
@@ -405,7 +409,7 @@ pub fn get_files(files: Vec<String>) -> Result<Vec<String>, GlobError<'static>> 
             };
             let parent = parent.unwrap().canonicalize().ok();
             if let Ok(g) = Glob::new(&filepattern) {
-                let dir_path = parent.unwrap_or(".".into());
+                let dir_path = parent.unwrap_or_else(|| ".".into());
                 for entry in g.walk(dir_path, 1).flatten() {
                     if entry.file_type().is_file() {
                         let filepath = entry.path().to_string_lossy().to_string();
