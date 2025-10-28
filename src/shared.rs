@@ -47,6 +47,7 @@ pub(crate) fn safe_gen_range(rng: &mut dyn RngCore, low: usize, high: usize) -> 
     rng.gen_range(low..high)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 impl Rands for usize {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -68,6 +69,7 @@ impl Rands for usize {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
 impl Rands for u64 {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -89,6 +91,7 @@ impl Rands for u64 {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
 impl Rands for u128 {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -110,6 +113,8 @@ impl Rands for u128 {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 impl Rands for isize {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -131,6 +136,8 @@ impl Rands for isize {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 impl Rands for i128 {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -152,13 +159,16 @@ impl Rands for i128 {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 impl Rands for i32 {
-    fn rands(&self, _rng: &mut dyn RngCore) -> Self {
+    fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
             return 0;
         }
-        _rng.gen_range(-*self..*self)
+        rng.gen_range(-*self..*self)
     }
+
     fn rand_log(&self, rng: &mut dyn RngCore) -> Self {
         if *self != 0 {
             let n = rng.gen_range(0..*self);
@@ -173,6 +183,8 @@ impl Rands for i32 {
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 impl Rands for i64 {
     fn rands(&self, rng: &mut dyn RngCore) -> Self {
         if *self == 0 {
@@ -284,9 +296,7 @@ pub(crate) fn mutate_num(rng: &mut dyn RngCore, num: i256) -> i256 {
         1 => num.overflowing_sub(I256::from(1)).0,
         2 => I256::from(0),
         3 => I256::from(1),
-        4 => *rand_elem(rng, &nums).unwrap_or(&I256::from(0)),
-        5 => *rand_elem(rng, &nums).unwrap_or(&I256::from(0)),
-        6 => *rand_elem(rng, &nums).unwrap_or(&I256::from(0)),
+        4..=6 => *rand_elem(rng, &nums).unwrap_or(&I256::from(0)),
         7 => {
             rand_elem(rng, &nums)
                 .unwrap_or(&I256::from(0))
@@ -318,6 +328,7 @@ pub(crate) trait PriorityList {
     fn priority(&self) -> usize;
 }
 
+#[allow(clippy::cast_possible_wrap)]
 pub(crate) fn choose_priority<T: PriorityList + std::fmt::Debug>(
     v: &mut [T],
     init: usize,
@@ -330,9 +341,8 @@ pub(crate) fn choose_priority<T: PriorityList + std::fmt::Debug>(
         }
         if len == 1 {
             return Some(next);
-        } else {
-            n -= next.priority() as isize;
         }
+        n -= next.priority() as isize;
     }
     None
 }
