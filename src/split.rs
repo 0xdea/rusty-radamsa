@@ -305,7 +305,7 @@ pub fn sed_tree_op(
                 .position(|r| r.id == node.id)
                 .unwrap();
             repeat_path(parent_node, index, n_reps);
-            debug!("n_reps: {}", n_reps);
+            debug!("n_reps: {n_reps}");
         }
         TreeMutate::TreeSwapReplace => {
             let mut node_list = sublist(&tree);
