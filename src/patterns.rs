@@ -304,11 +304,12 @@ mod tests {
             crate::mutations::string_mutators("num,br", &mut mutations.mutators);
         patterns.pattern_nodes = string_patterns("od", &mut patterns.patterns);
         mutations.randomize(&mut rng);
-        let mut total_len = 0;
-        if let Some(gen) = generators.mux_generators(&mut rng, &Some(paths), None) {
-            let (_og_data, new_data) = patterns.mux_patterns(gen, &mut mutations).unwrap();
-            total_len = new_data.len();
-        }
+        let total_len = generators
+            .mux_generators(&mut rng, &Some(paths), None)
+            .map_or(0, |gen| {
+                let (_og_data, new_data) = patterns.mux_patterns(gen, &mut mutations).unwrap();
+                new_data.len()
+            });
         debug!("file_len {file_len}");
         assert_eq!(total_len, 3487);
     }
