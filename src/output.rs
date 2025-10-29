@@ -19,13 +19,13 @@ pub const DEFAULT_OUTPUTS: &str = "-";
 #[must_use]
 pub fn init_outputs() -> Vec<Output> {
     Vec::from([
-        Output::new("-","Write output data to Stdout", OutputType::Stdout),
+        Output::new("-", "Write output data to Stdout", OutputType::Stdout),
         Output::new("file", "Write output data to a binary file", OutputType::File),
-        Output::new("tcpserver", "Write output data to a tcp port as server",OutputType::TCPServer), 
-        Output::new("tcpclient", "Write output data to a tcp port as client",OutputType::TCPClient),
-        Output::new("udpserver", "Write output data to a udp port as server", OutputType::UDPServer),  
+        Output::new("tcpserver", "Write output data to a tcp port as server", OutputType::TCPServer),
+        Output::new("tcpclient", "Write output data to a tcp port as client", OutputType::TCPClient),
+        Output::new("udpserver", "Write output data to a udp port as server", OutputType::UDPServer),
         Output::new("udpclient", "Write output data to a udp port as client", OutputType::UDPClient),
-        Output::new("buffer", "Write output data to a buffer address or vector", OutputType::Buffer), 
+        Output::new("buffer", "Write output data to a buffer address or vector", OutputType::Buffer),
         Output::new("hash", "Write output variations or a hashing directory using %n and %s as in the template path (i.e. /tmp/fuzz-%n.%s)", OutputType::Hashing),
         Output::new("template", "Output template. %f is fuzzed data. e.g. \"<html>%f</html>\"", OutputType::Template),
     ])
@@ -107,30 +107,29 @@ impl Outputs {
         for output in &mut self.outputs {
             debug!("writing to {}", output.id);
             output.write(&data)?;
-            if output.fd_type == OutputType::Buffer {
-                if let Some(ref mut buf) = buffer.as_mut() {
-                    if self.resize {
-                        let resize_len = match self.truncate {
-                            0 => data.len(),
-                            _ => self.truncate,
-                        };
-                        let vec = vec![0u8; resize_len];
-                        ***buf = vec.into_boxed_slice();
-                        buf[..resize_len].clone_from_slice(&data[..resize_len]);
+            if output.fd_type == OutputType::Buffer
+                && let Some(ref mut buf) = buffer.as_mut() {
+                if self.resize {
+                    let resize_len = match self.truncate {
+                        0 => data.len(),
+                        _ => self.truncate,
+                    };
+                    let vec = vec![0u8; resize_len];
+                    ***buf = vec.into_boxed_slice();
+                    buf[..resize_len].clone_from_slice(&data[..resize_len]);
+                } else {
+                    let max_len = if data.len() < buf.len() {
+                        data.len()
                     } else {
-                        let max_len = if data.len() < buf.len() {
-                            data.len()
-                        } else {
-                            buf.len()
-                        };
-                        let gr: &dyn GenericReader = output.fd.as_ref().unwrap().as_ref();
-                        let cursor: &Cursor<Box<[u8]>> = gr
-                            .as_any()
-                            .downcast_ref::<Cursor<Box<[u8]>>>()
-                            .expect("Wasn't a trusty printer!");
-                        let vec = cursor.get_ref();
-                        buf[..max_len].clone_from_slice(&vec[..max_len]);
-                    }
+                        buf.len()
+                    };
+                    let gr: &dyn GenericReader = output.fd.as_ref().unwrap().as_ref();
+                    let cursor: &Cursor<Box<[u8]>> = gr
+                        .as_any()
+                        .downcast_ref::<Cursor<Box<[u8]>>>()
+                        .expect("Wasn't a trusty printer!");
+                    let vec = cursor.get_ref();
+                    buf[..max_len].clone_from_slice(&vec[..max_len]);
                 }
             }
             output.flush_bvecs()?;
@@ -261,10 +260,9 @@ pub fn string_outputs(input: Vec<&str>, outputs: &mut [Output]) -> Vec<Output> {
                     let mut paths: Vec<String> = Vec::new();
                     while let Some(path) = iter.next() {
                         paths.push((*path).to_string());
-                        if let Some(peek) = iter.peek() {
-                            if outputs.iter().any(|x| x.id.eq(*peek)) {
-                                break;
-                            }
+                        if let Some(peek) = iter.peek() &&
+                            outputs.iter().any(|x| x.id.eq(*peek)) {
+                            break;
                         }
                     }
                     let mut output = o.clone();

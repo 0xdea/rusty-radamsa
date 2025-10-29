@@ -93,10 +93,9 @@ fn check_delim_close(byte: u8) -> Option<(u8, u8)> {
 }
 
 const fn check_node(node: &Node, delim: Option<(u8, u8)>, index: usize) -> bool {
-    if let Some(delim) = delim {
-        if node.delim.0 == delim.0 && index != node.start_index {
-            return true;
-        }
+    if let Some(delim) = delim &&
+        node.delim.0 == delim.0 && index != node.start_index {
+        return true;
     }
     false
 }
@@ -112,8 +111,8 @@ fn build_binary_tree(bytes: &[u8]) -> Node {
         let close_delim = check_delim_close(*byte);
         if close_delim.is_some()
             && stack
-                .last()
-                .is_some_and(|n| check_node(n, close_delim, index))
+            .last()
+            .is_some_and(|n| check_node(n, close_delim, index))
         {
             let mut node = stack.pop().expect("invalid parentheses sequence");
             node.set_end_index(index + 1);
@@ -216,10 +215,9 @@ fn _print_binary_tree(node: &Node, level: usize) {
 // check for comma separator
 fn check_separator(start_index: usize, data: &[u8]) -> bool {
     let prev_index = start_index - 1;
-    if let Some(prev_byte) = data.get(prev_index) {
-        if *prev_byte == COMMA {
-            return true;
-        }
+    if let Some(prev_byte) = data.get(prev_index) &&
+        *prev_byte == COMMA {
+        return true;
     }
     false
 }

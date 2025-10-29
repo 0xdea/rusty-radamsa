@@ -99,19 +99,17 @@ fn split_prefixes<'a, T: Clone + PartialEq + std::fmt::Debug + std::hash::Hash +
     let mut hash_suffix: std::collections::BTreeSet<&[T]> = std::collections::BTreeSet::new();
     // assuming _prefixes is sorted by length
     for prefix in prefixes {
-        if let Some(key) = prefix.first() {
-            if char_suffix.insert(key) {
-                let len = prefix.len() - 1;
-                new_prefixes.push(prefix.clone());
-                suffixes.retain(|x| {
-                    if x.len() < len {
-                        hash_suffix.insert(x.clone());
-                        false
-                    } else {
-                        true
-                    }
-                });
-            }
+        if let Some(key) = prefix.first() && char_suffix.insert(key) {
+            let len = prefix.len() - 1;
+            new_prefixes.push(prefix.clone());
+            suffixes.retain(|x| {
+                if x.len() < len {
+                    hash_suffix.insert(x.clone());
+                    false
+                } else {
+                    true
+                }
+            });
         }
     }
     let new_suffixes: Vec<&[T]> = hash_suffix.into_iter().collect();
