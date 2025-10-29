@@ -51,12 +51,16 @@ impl PatternType {
         info.to_string()
     }
 
-    fn apply(self, gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
+    fn apply(
+        self,
+        generator: &mut Generator,
+        mutas: &mut Mutations,
+    ) -> Option<(Box<[u8]>, Vec<u8>)> {
         use PatternType::*;
         match self {
-            OnceDec => pat_once_dec(gen, mutas),
-            ManyDec => pat_many_dec(gen, mutas),
-            Burst => pat_burst(gen, mutas),
+            OnceDec => pat_once_dec(generator, mutas),
+            ManyDec => pat_many_dec(generator, mutas),
+            Burst => pat_burst(generator, mutas),
         }
     }
 }
@@ -90,11 +94,11 @@ impl Patterns {
     /// Will choose the top priority Pattern. Pattern will execute and return mutator content.
     pub fn mux_patterns(
         &mut self,
-        gen: &mut Generator,
+        generator: &mut Generator,
         mutas: &mut Mutations,
     ) -> Option<(Box<[u8]>, Vec<u8>)> {
         // (og, mutated)
-        let rng = gen.rng.as_mut().unwrap();
+        let rng = generator.rng.as_mut().unwrap();
         // weighted-permutation
         let mut total_priority = 0;
         for pattern in &self.patterns {
@@ -106,7 +110,7 @@ impl Patterns {
         // choose-pri
         let chosen_pattern = choose_priority(&mut self.patterns, initial_priority)?;
         debug!("pat {}", chosen_pattern.pattern_type.id());
-        chosen_pattern.pattern_type.apply(gen, mutas)
+        chosen_pattern.pattern_type.apply(generator, mutas)
     }
 }
 
@@ -166,9 +170,12 @@ pub fn string_patterns(input: &str, patterns: &mut [Pattern]) -> Vec<PatternType
     applied_patterns
 }
 
-pub fn pat_once_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
+pub fn pat_once_dec(
+    generator: &mut Generator,
+    mutas: &mut Mutations,
+) -> Option<(Box<[u8]>, Vec<u8>)> {
     // Mutate once
-    let (og_data, mut data) = mutate_once(gen, mutas);
+    let (og_data, mut data) = mutate_once(generator, mutas);
     let mut new_data: Vec<u8> = vec![];
     for x in &mut data {
         new_data.append(x);
@@ -177,13 +184,16 @@ pub fn pat_once_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
 }
 
 /// 1 or more mutations
-pub fn pat_many_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
+pub fn pat_many_dec(
+    generator: &mut Generator,
+    mutas: &mut Mutations,
+) -> Option<(Box<[u8]>, Vec<u8>)> {
     // Mutate once
-    let (og_data, mut data) = mutate_once(gen, mutas);
+    let (og_data, mut data) = mutate_once(generator, mutas);
     let mut _count = 0_usize;
     let mut mut_data: Option<Vec<Vec<u8>>> = None;
-    while rand_occurs(gen.rng.as_mut()?, REMUTATE_PROBABILITY) {
-        mut_data = Some(mutate_multi(gen.rng.as_mut()?, &data, mutas));
+    while rand_occurs(generator.rng.as_mut()?, REMUTATE_PROBABILITY) {
+        mut_data = Some(mutate_multi(generator.rng.as_mut()?, &data, mutas));
         _count += 1;
     }
     let mut new_data: Vec<u8> = vec![];
@@ -202,14 +212,14 @@ pub fn pat_many_dec(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[
     Some((og_data, new_data))
 }
 
-pub fn pat_burst(gen: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
-    let (og_data, mut data) = mutate_once(gen, mutas);
+pub fn pat_burst(generator: &mut Generator, mutas: &mut Mutations) -> Option<(Box<[u8]>, Vec<u8>)> {
+    let (og_data, mut data) = mutate_once(generator, mutas);
     let mut _count = 0_usize;
     let mut n = 1;
     loop {
-        let p = rand_occurs(gen.rng.as_mut().unwrap(), REMUTATE_PROBABILITY);
+        let p = rand_occurs(generator.rng.as_mut().unwrap(), REMUTATE_PROBABILITY);
         if p || n < 2 {
-            data = mutate_multi(gen.rng.as_mut().unwrap(), &data, mutas);
+            data = mutate_multi(generator.rng.as_mut().unwrap(), &data, mutas);
             n += 1;
             _count += 1;
         } else {
@@ -245,18 +255,18 @@ fn mutate_multi(rng: &mut dyn RngCore, data: &Vec<Vec<u8>>, mutas: &mut Mutation
 #[allow(clippy::type_complexity)]
 fn mutate_once(
     //_rng: &mut dyn RngCore,
-    gen: &mut Generator,
+    generator: &mut Generator,
     mutas: &mut Mutations,
 ) -> (Box<[u8]>, Vec<Vec<u8>>) {
     // initial inverse probability
-    let mut ip = INITIAL_IP.rands(gen.rng.as_mut().unwrap());
+    let mut ip = INITIAL_IP.rands(generator.rng.as_mut().unwrap());
     let mut og_output: Vec<u8> = Vec::new();
     let mut new_output: Vec<Vec<u8>> = Vec::new();
-    while let (Some(ref data), last_block) = gen.next_block() {
+    while let (Some(ref data), last_block) = generator.next_block() {
         og_output.append(&mut data.clone());
-        let n = ip.rands(gen.rng.as_mut().unwrap());
+        let n = ip.rands(generator.rng.as_mut().unwrap());
         if n == 0 || last_block {
-            if let Some(new_data) = mutas.mux_fuzzers(gen.rng.as_mut().unwrap(), Some(data)) {
+            if let Some(new_data) = mutas.mux_fuzzers(generator.rng.as_mut().unwrap(), Some(data)) {
                 new_output.push(new_data);
                 ip += 1;
             } else {
@@ -311,8 +321,9 @@ mod tests {
         mutations.randomize(&mut rng);
         let total_len = generators
             .mux_generators(&mut rng, &Some(paths), None)
-            .map_or(0, |gen| {
-                let (_og_data, new_data) = patterns.mux_patterns(gen, &mut mutations).unwrap();
+            .map_or(0, |generator| {
+                let (_og_data, new_data) =
+                    patterns.mux_patterns(generator, &mut mutations).unwrap();
                 new_data.len()
             });
         debug!("file_len {file_len}");
@@ -337,8 +348,9 @@ mod tests {
         mutations.randomize(&mut rng);
         let total_len = generators
             .mux_generators(&mut rng, &Some(paths), None)
-            .map_or(0, |gen| {
-                let (_og_data, new_data) = patterns.mux_patterns(gen, &mut mutations).unwrap();
+            .map_or(0, |generator| {
+                let (_og_data, new_data) =
+                    patterns.mux_patterns(generator, &mut mutations).unwrap();
                 new_data.len()
             });
         assert_eq!(total_len, 3485);
@@ -362,8 +374,9 @@ mod tests {
         mutations.randomize(&mut rng);
         let total_len = generators
             .mux_generators(&mut rng, &Some(paths), None)
-            .map_or(0, |gen| {
-                let (_og_data, new_data) = patterns.mux_patterns(gen, &mut mutations).unwrap();
+            .map_or(0, |generator| {
+                let (_og_data, new_data) =
+                    patterns.mux_patterns(generator, &mut mutations).unwrap();
                 new_data.len()
             });
         assert_eq!(total_len, 3524);

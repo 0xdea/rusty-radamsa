@@ -293,7 +293,7 @@ pub fn get_fd(
             Ok(Box::new(UdpSocket::gen_open("w", path, None)?))
         }
         OutputType::Buffer => {
-            if let Some(ref buf) = buf {
+            if let Some(buf) = buf {
                 let b: Box<[u8]> = (**buf).clone();
                 Ok(Box::new(Cursor::<Box<[u8]>>::gen_open("w", None, Some(b))?))
             } else {

@@ -96,7 +96,7 @@ impl Generators {
             total_priority += generator.priority;
             generator.init(rng);
             let (paths, data) = match paths {
-                Some(ref p) => {
+                Some(p) => {
                     let rng = generator.rng.as_mut().unwrap();
                     let n: usize = p.len().rands(rng);
                     (p.get(n).cloned(), None)
@@ -130,8 +130,8 @@ impl Generators {
         // Sort by priority
         self.generators.sort_by(|x, y| y.priority.cmp(&x.priority));
         //let gen = choose_priority(&mut self.generators, initial_priority)?;
-        let gen = self.generators.first_mut()?;
-        Some(gen)
+        let generator = self.generators.first_mut()?;
+        Some(generator)
     }
 }
 
@@ -230,8 +230,8 @@ impl GenType {
 #[must_use]
 pub fn init_generators() -> Vec<Generator> {
     let mut map = Vec::<Generator>::new();
-    for gen in GenType::iter() {
-        map.push(Generator::new(gen));
+    for generator in GenType::iter() {
+        map.push(Generator::new(generator));
     }
     map
 }
@@ -785,7 +785,7 @@ struct RandomStream {
 fn random_block(rng: &mut dyn RngCore, mut n: usize) -> Vec<u8> {
     let mut new_data: Vec<u8> = Vec::new();
     while 0 < n {
-        let digit: i128 = rng.gen();
+        let digit: i128 = rng.r#gen();
         new_data.push((digit & 255) as u8);
         n -= 1;
     }
@@ -952,8 +952,8 @@ mod tests {
             &mut generators.generators,
         );
         let mut total_len = 0;
-        if let Some(gen) = generators.mux_generators(&mut rng, &Some(paths), None) {
-            while let (Some(block), _last_block) = gen.next_block() {
+        if let Some(generator) = generators.mux_generators(&mut rng, &Some(paths), None) {
+            while let (Some(block), _last_block) = generator.next_block() {
                 total_len += block.len();
             }
         }

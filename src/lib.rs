@@ -273,12 +273,12 @@ impl Radamsa {
     /// rad.init();
     /// rad.set_generators("file");
     /// ```
-    pub fn set_generators(&mut self, gen: &str) -> Result<(), Box<dyn std::error::Error>> {
-        if gen == "default" {
+    pub fn set_generators(&mut self, generator: &str) -> Result<(), Box<dyn std::error::Error>> {
+        if generator == "default" {
             self.generators.default_generators();
         } else {
             self.generators.generator_nodes =
-                generators::string_generators(gen, &mut self.generators.generators);
+                generators::string_generators(generator, &mut self.generators.generators);
         }
 
         if self.generators.generator_nodes.is_empty() {
@@ -482,7 +482,7 @@ pub fn radamsa(
 ///     return 0;
 /// }
 /// ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn rusty_radamsa_init() -> *mut Radamsa {
     let mut r = Radamsa::new_with_seed(42);
     r.checksums.use_hashmap = false;
@@ -523,7 +523,7 @@ pub extern "C" fn rusty_radamsa_init() -> *mut Radamsa {
 ///     return 0;
 /// }
 /// ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *const i8) {
     unsafe {
         let radamsa_instance = &mut *ctx;
@@ -574,7 +574,7 @@ pub unsafe extern "C" fn rusty_radamsa_set_mutator(ctx: *mut Radamsa, config: *c
 ///    return NewSize;
 /// }
 /// ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rusty_radamsa(
     ctx: *mut Radamsa,
     data: *const u8,

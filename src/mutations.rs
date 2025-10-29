@@ -428,7 +428,7 @@ pub fn string_mutators(input: &str, mutators: &mut BTreeMap<MutaType, Mutator>) 
 }
 
 fn rand_delta(rng: &mut dyn RngCore) -> isize {
-    if rng.gen() {
+    if rng.r#gen() {
         1
     } else {
         -1
@@ -596,7 +596,7 @@ pub fn sed_byte_insert(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option
     let d = rand_delta(rng);
     let data = data.expect("data is not None");
     let mut new_data = data.clone();
-    let b = rng.gen::<u8>();
+    let b = rng.r#gen::<u8>();
     let p = rng.gen_range(0..=data.len());
     new_data.insert(p, b);
     (Some(new_data), d)
@@ -604,7 +604,7 @@ pub fn sed_byte_insert(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option
 
 fn repeat_len(rng: &mut dyn RngCore) -> usize {
     let mut limit = 0b10;
-    while rng.gen() && limit != 0x20000 {
+    while rng.r#gen() && limit != 0x20000 {
         limit <<= 1;
     }
     rng.gen_range(0..limit)
@@ -631,7 +631,7 @@ pub fn sed_byte_random(rng: &mut dyn RngCore, data: Option<&Vec<u8>>) -> (Option
     let data = data.expect("data is not None");
     let mut new_data = data.clone();
     if !data.is_empty() {
-        let b = rng.gen::<u8>();
+        let b = rng.r#gen::<u8>();
         let p = rng.gen_range(0..data.len());
         new_data[p] = b;
     }

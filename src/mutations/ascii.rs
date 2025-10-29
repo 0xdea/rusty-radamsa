@@ -180,7 +180,7 @@ fn parse_texty(input: &[u8]) -> IResult<&[u8], Vec<Text>> {
     let fold_ascii = |mut acc: Vec<Text>, dat: Text| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous texty blocks
-            (Some(Text::Texty(ref mut a)), Text::Texty(b)) => a.extend(b),
+            (Some(Text::Texty(a)), Text::Texty(b)) => a.extend(b),
             (_, dat) => acc.push(dat),
         }
         acc
@@ -245,7 +245,7 @@ fn parse_bytes(min_texty: usize) -> impl FnMut(&[u8]) -> IResult<&[u8], Vec<Data
     let fold_bytes = |mut acc: Vec<Data>, dat: Data| {
         match (acc.last_mut(), dat) {
             // coalesce contiguous byte blocks
-            (Some(Data::Bytes(ref mut a)), Data::Bytes(b)) => a.extend(b),
+            (Some(Data::Bytes(a)), Data::Bytes(b)) => a.extend(b),
             (_, dat) => acc.push(dat),
         }
         acc
@@ -293,7 +293,7 @@ impl Ascii {
     pub(crate) fn mutate(&mut self, rng: &mut dyn RngCore) {
         loop {
             // find a mutatable chunk, ignoring non-ascii data
-            if let Data::Texty(ref mut dat) = self.0.choose_mut(rng).unwrap() {
+            if let Data::Texty(dat) = self.0.choose_mut(rng).unwrap() {
                 dat.choose_mut(rng).unwrap().mutate(rng);
                 break;
             }

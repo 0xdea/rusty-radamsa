@@ -31,7 +31,7 @@ fn alernate_suffixes<'a, T: Clone>(
     let mut sub_lista: &[T] = &[];
     let mut sub_listb: &[T] = &[];
     for (i, _val) in lista.iter().enumerate() {
-        let d: usize = rng.gen();
+        let d: usize = rng.r#gen();
         if d & 1 == 1 {
             sub_lista = &lista[i..];
             if !sub_listb.is_empty() {
